@@ -127,8 +127,8 @@ REST_FRAMEWORK = {
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'SERIALIZERS': {
-        'user': 'djoser.serializers.UserSerializer',
-        'current_user': 'djoser.serializers.UserSerializer',
+        'user': 'api.serializers.ProfileSerializers',
+        'current_user': 'api.serializers.ProfileSerializers',
     },
     # 'PERMISSIONS': {
     #     'user': ['rest_framework.permissions.AllowAny'],
@@ -138,7 +138,3 @@ DJOSER = {
 }
 
 
-SIMPLE_JWT = {
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=2),
-   'AUTH_HEADER_TYPES': ('Bearer',),
-}
