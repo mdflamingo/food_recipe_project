@@ -18,7 +18,7 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
     serializer_class = CookingRecipesSerializer
 
 
-class TagViewSet(viewsets.ModelViewSet):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer(many=True)
 
