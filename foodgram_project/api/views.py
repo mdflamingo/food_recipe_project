@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import viewsets
 
 from recipes.models import CookingRecipe, Tag, Ingredients
-from .serializers import CookingRecipesSerializer, TagSerializer, IngredientsSerializer
+from .serializers import CookingRecipesSerializer, TagSerializer, IngredientsSerializer, CookingRecipeListSerializer
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -26,5 +26,9 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CookingRecipeViewSet(viewsets.ModelViewSet):
-    queryset = CookingRecipe.objects.all()
-    serializer_class = CookingRecipesSerializer
+    # queryset = CookingRecipe.objects.all()
+    # serializer_class = CookingRecipesSerializer
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return CookingRecipeListSerializer
+        return CookingRecipesSerializer

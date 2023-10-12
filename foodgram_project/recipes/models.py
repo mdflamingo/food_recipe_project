@@ -14,17 +14,17 @@ class CookingRecipe(models.Model):
     name = models.CharField(
         'Название',
         max_length=200)
-    # image = models.ImageField(
-    #     'Фото рецепта',
-    #     upload_to='static/recipe/')
+    image = models.CharField(
+        'Фото рецепта',
+        max_length=200) 
     text = models.TextField(
         'Описание')
     ingredients = models.ManyToManyField(
-        'Ingredients', 
+        'Ingredients',
         blank=False,
-        through='CookingRecipeIngredients')
+        through='CookingRecipeIngredients', related_name='recipe')
     tags = models.ManyToManyField(
-        'Tag', related_name='recipes')
+        'Tag', related_name='recipe')
     cooking_time = models.IntegerField(
         'Время приготовления',
         validators=[MinValueValidator(1)])
