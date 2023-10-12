@@ -26,7 +26,7 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class CookingRecipeViewSet(viewsets.ModelViewSet):
-    # queryset = CookingRecipe.objects.all()
+    queryset = CookingRecipe.objects.all()
     # serializer_class = CookingRecipesSerializer
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):

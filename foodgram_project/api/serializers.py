@@ -30,7 +30,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
 
 
 class ReadCookingRecipesSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='ingrediens.id')
+    id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measure_unit = serializers.ReadOnlyField(source='ingredient.measure_unit')
 
@@ -79,13 +79,19 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         if len(tags) != len(set(tags)):
             raise serializers.ValidationError({'tags': 'Теги не должны повторяться'})
         return data
-    
+
     # добавить валидацию ингредиентов, игредиеты не должны повторятьсяю
     # реализовать уникальность ингредиентов на уровне класса
     # unique_together = ("name", "measurement_unit") в Meta
 
     def create(self, validated_data):
-        return super().create(validated_data)
-    
+        # создаем рецепт
+        # создаем теги
+        # создаем ингредиенты
+        pass
+
     def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
+        # обновляем ингредиенты
+        # обновляем теги
+        # обновляем рецепт
+        pass
