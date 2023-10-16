@@ -9,7 +9,7 @@ def run():
         for row in reader:
             object = Ingredients()
             object.name = row[0]
-            object.measure_unit = row[1]
+            object.measurement_unit = row[1]
             data.append(object)
         Ingredients.objects.bulk_create(data)
     print('Finished!')

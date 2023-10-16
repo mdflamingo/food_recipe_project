@@ -10,13 +10,18 @@ class CookingRecipe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='recipe',
-        blank=True)
+        blank=False)
     name = models.CharField(
         'Название',
         max_length=200)
-    image = models.CharField(
+    # image = models.CharField(
+    #     'Фото рецепта',
+    #     max_length=200,
+    #     blank=False)
+    image = models.ImageField(
         'Фото рецепта',
-        max_length=200) 
+        upload_to='recipes/images/',
+        blank=False)
     text = models.TextField(
         'Описание')
     ingredients = models.ManyToManyField(
@@ -56,15 +61,19 @@ class Ingredients(models.Model):
         'Название',
         max_length=200)
 
-    measure_unit = models.CharField(
+    measurement_unit = models.CharField(
         'Единица измерения',
         max_length=200)
 
     class Meta:
         ordering = ('name', )
+        # constraints = [
+        #     models.UniqueConstraint(fields=['name', 'measurement_unit'], name='name_measurement_unit')
+        # ]
+        unique_together = ('name', 'measurement_unit')
 
     def __str__(self):
-        return f'{self.name}, {self.measure_unit}'
+        return f'{self.name}, {self.measurement_unit}'
 
 
 class CookingRecipeIngredients(models.Model):
@@ -80,3 +89,12 @@ class CookingRecipeIngredients(models.Model):
         'Количество',
         default=1,
         validators=[MinValueValidator(1)])
+
+
+class CookingRecipeTag(models.Model):
+    recipe = models.ForeignKey(
+        CookingRecipe,
+        on_delete=models.CASCADE)
+    tag = models.ForeignKey(
+        Tag,
+        on_delete=models.CASCADE)
