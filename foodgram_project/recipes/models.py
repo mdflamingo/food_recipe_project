@@ -2,7 +2,9 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
-User = get_user_model()
+from users.models import User
+
+#User = get_user_model()
 
 
 class CookingRecipe(models.Model):
@@ -25,9 +27,9 @@ class CookingRecipe(models.Model):
     text = models.TextField(
         'Описание')
     ingredients = models.ManyToManyField(
-        'Ingredients',
-        blank=False,
-        through='CookingRecipeIngredients', related_name='recipe')
+        'Ingredient',
+        #blank=False,
+        through='CookingRecipeIngredient', related_name='recipe')
     tags = models.ManyToManyField(
         'Tag', related_name='recipe')
     cooking_time = models.IntegerField(
@@ -56,7 +58,7 @@ class Tag(models.Model):
         return self.name
 
 
-class Ingredients(models.Model):
+class Ingredient(models.Model):
     name = models.CharField(
         'Название',
         max_length=200)
@@ -76,19 +78,22 @@ class Ingredients(models.Model):
         return f'{self.name}, {self.measurement_unit}'
 
 
-class CookingRecipeIngredients(models.Model):
+class CookingRecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         CookingRecipe,
         on_delete=models.CASCADE,
         related_name='recipe')
     ingredient = models.ForeignKey(
-        Ingredients,
+        Ingredient,
         on_delete=models.CASCADE,
         related_name='ingredient')
     amount = models.IntegerField(
         'Количество',
         default=1,
         validators=[MinValueValidator(1)])
+
+    def __str__(self):
+        return f'{self.recipe}, {self.ingredient}, {self.amount}'
 
 
 class CookingRecipeTag(models.Model):
@@ -98,3 +103,6 @@ class CookingRecipeTag(models.Model):
     tag = models.ForeignKey(
         Tag,
         on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.tag} {self.recipe}'

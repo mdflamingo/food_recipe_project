@@ -1,5 +1,5 @@
 import csv
-from recipes.models import Ingredients
+from recipes.models import Ingredient
 
 
 def run():
@@ -7,11 +7,11 @@ def run():
         reader = csv.reader(file)
         data = []
         for row in reader:
-            object = Ingredients()
+            object = Ingredient()
             object.name = row[0]
             object.measurement_unit = row[1]
             data.append(object)
-        Ingredients.objects.bulk_create(data)
+        Ingredient.objects.bulk_create(data)
     print('Finished!')
 
 

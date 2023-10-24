@@ -3,3 +3,4 @@ djangorestframework==3.14.0
 python-dotenv==1.0.0
 djoser==2.1.0
 djangorestframework-simplejwt==4.7.2
+webcolors==1.11.1
