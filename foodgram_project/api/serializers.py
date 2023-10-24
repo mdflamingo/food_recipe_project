@@ -8,8 +8,7 @@ from django.core.files.base import ContentFile
 from recipes.models import (CookingRecipe,
                             Tag,
                             Ingredient,
-                            CookingRecipeIngredient,
-                            CookingRecipeTag)
+                            CookingRecipeIngredient,)
 from users.models import User, Follow
 
 
@@ -73,9 +72,7 @@ class ReadCookingRecipesSerializer(serializers.ModelSerializer):
 
 class AddIngredientsSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    #print(f'!!!!!{id}')
     amount = serializers.IntegerField(min_value=1)
-    print(amount)
 
     class Meta:
         model = CookingRecipeIngredient
@@ -84,7 +81,7 @@ class AddIngredientsSerializer(serializers.ModelSerializer):
 
 class CookingRecipeListSerializer(serializers.ModelSerializer):
     # получение рецепта GET
-    ingredients = ReadCookingRecipesSerializer(many=True)#source='recipe_ingredient')
+    ingredients = ReadCookingRecipesSerializer(many=True)#, source='ingredients_recipe')
     tags = TagSerializer(many=True, read_only=True)
     author = ProfileSerializers(read_only=True)
 
@@ -98,7 +95,8 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
     # cоздание рецепта
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     #tags = TagSerializer(many=True)
-    ingredients = AddIngredientsSerializer(many=True, source='ingredient_recipe')
+    ingredients = AddIngredientsSerializer(many=True)#, source='ingredientamount_set')
+    # разобраться в source, проблема может бфть в этом!!!!!!
     image = Base64ImageField()
 
     class Meta:
@@ -158,28 +156,51 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # создатьь рецепт, затем к созданному рецепту прикрутить теги и ингредиенты
 
-        print(validated_data)
+        # #print(validated_data)
+        # tags = validated_data.pop('tags')
+        # #print(validated_data)
+        # recipe_ingredients = validated_data.pop('ingredientamount_set')
+        # recipe = CookingRecipe.objects.create(**validated_data)
+        # for tag in tags:
+        #     CookingRecipeTag.objects.create(
+        #         tag=tag,
+        #         recipe=recipe
+        #     )
+        # for ingredient in recipe_ingredients:
+        #     ingr_id = ingredient.get('id')
+        #     print(type(ingr_id))
+        #     amount = ingredient.get('amount')
+        #     print(type(amount))
+        #     CookingRecipeIngredient.objects.create(
+        #         recipe=recipe,
+        #         ingredient=ingr_id,
+        #         amount=amount
+        #     )
+        #     print(222222222222)
+        # return CookingRecipeListSerializer(recipe)
+        ingredients = validated_data.pop('ingredients')
+        print(f'!!!!{ingredients}')
         tags = validated_data.pop('tags')
-        recipe_ingredients = validated_data.pop('ingredients')
         recipe = CookingRecipe.objects.create(**validated_data)
         for tag in tags:
             CookingRecipeTag.objects.create(
                 tag=tag,
                 recipe=recipe
             )
-        for ingredient in recipe_ingredients:
-            ingr_id = ingredient.get('id')
-            print(type(ingr_id))
-            amount = ingredient.get('amount')
-            print(type(amount))
+        for ingredient in ingredients:
+            current_ingredient = ingredient.get('id')
+            current_amount = ingredient.get('amount')
             CookingRecipeIngredient.objects.create(
                 recipe=recipe,
-                ingredient=ingr_id,
-                amount=amount
+                ingredient=current_ingredient,
+                amount=current_amount,
             )
-            print(222222222222)
-        return recipe
+        return CookingRecipeListSerializer(recipe)
     
+    def to_representation(self, instance):
+        recipe_serializer = CookingRecipeListSerializer(instance)
+        return recipe_serializer.data
+
     def update(self, instance, validated_data):
         # обновляем ингредиенты
         # обновляем теги
