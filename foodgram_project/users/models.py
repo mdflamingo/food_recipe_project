@@ -1,7 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
 
 
 class User(AbstractUser):
@@ -40,15 +38,29 @@ class User(AbstractUser):
         max_length=150,
         help_text='Введите пароль',
     )
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name',]
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['email', 'password'], name='email_password')
+            models.UniqueConstraint(fields=['email', 'password'],
+                                    name='email_password')
             ]
 
 
 class Follow(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follower')
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='follower')
+    following = models.ForeignKey(User,
+                                  on_delete=models.CASCADE,
+                                  related_name='following')
+
+    class Meta:
+        constraints = [ 
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
+        ]

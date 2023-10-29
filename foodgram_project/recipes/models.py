@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -78,16 +77,16 @@ class CookingRecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         CookingRecipe,
         on_delete=models.CASCADE,
-        related_name='recipe_used')
+        related_name='ingredient_used')
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_used')
+        related_name='recipe_used')
     amount = models.IntegerField(
         'Количество',
         default=1,
         validators=[MinValueValidator(1)])
-        
+
     def __str__(self):
         return f'{self.recipe}, {self.ingredient}, {self.amount}'
 

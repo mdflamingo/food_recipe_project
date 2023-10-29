@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404
+#from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 import base64
 import webcolors
@@ -40,8 +40,8 @@ class Hex2NameColor(serializers.Field):
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')  
-            ext = format.split('/')[-1]  
+            format, imgstr = data.split(';base64,')
+            ext = format.split('/')[-1]
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
         return super().to_internal_value(data)
 
@@ -81,7 +81,7 @@ class AddIngredientsSerializer(serializers.ModelSerializer):
 
 class CookingRecipeListSerializer(serializers.ModelSerializer):
     # получение рецепта GET
-    ingredients = ReadCookingRecipesSerializer(many=True)#, source='ingredients_recipe')
+    ingredients = ReadCookingRecipesSerializer(many=True, source='ingredient_used')
     tags = TagSerializer(many=True, read_only=True)
     author = ProfileSerializers(read_only=True)
 
@@ -95,8 +95,8 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
     # cоздание рецепта
     tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     #tags = TagSerializer(many=True)
-    ingredients = AddIngredientsSerializer(many=True)#, source='ingredientamount_set')
-    # разобраться в source, проблема может бфть в этом!!!!!!
+    ingredients = AddIngredientsSerializer(many=True,
+                                           source='ingredient_used')
     image = Base64ImageField()
 
     class Meta:
@@ -178,23 +178,31 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         #     )
         #     print(222222222222)
         # return CookingRecipeListSerializer(recipe)
-        ingredients = validated_data.pop('ingredients')
+        ingredients = validated_data.pop('ingredient_used')
         print(f'!!!!{ingredients}')
         tags = validated_data.pop('tags')
         recipe = CookingRecipe.objects.create(**validated_data)
-        for tag in tags:
-            CookingRecipeTag.objects.create(
-                tag=tag,
-                recipe=recipe
-            )
+        # for tag in tags:
+        #     CookingRecipeTag.objects.create(
+        #         tag=tag,
+        #         recipe=recipe
+        #     )
         for ingredient in ingredients:
             current_ingredient = ingredient.get('id')
             current_amount = ingredient.get('amount')
-            CookingRecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=current_ingredient,
-                amount=current_amount,
+            # CookingRecipeIngredient.objects.create(
+            #     recipe=recipe,
+            #     ingredient=current_ingredient,
+            #     amount=current_amount,
+            # )
+            recipe.ingredients.add(
+                current_ingredient,
+                through_defaults={
+                    'amount': current_amount,
+                }
             )
+            for tag in tags:
+                recipe.tags.add(tag)
         return CookingRecipeListSerializer(recipe)
     
     def to_representation(self, instance):
@@ -215,14 +223,45 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         return instance
 
 
-class FollowListSerializer(serializers.ModelSerializer):
-
+class FollowRecipeSerializers(serializers.ModelSerializer):
     class Meta:
         model = CookingRecipe
-        fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ('id', 'name',
+                  'image', 'cooking_time')
+
+
+class FollowListSerializer(serializers.ModelSerializer):
+    #список подписок
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count')
+        
+    def get_recipes(self, obj):
+        #recipes = []
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        queryset = CookingRecipe.objects.filter(author=obj.author)
+        if limit:
+            queryset = queryset[:int(limit)]
+        return FollowRecipeSerializers(queryset, many=True).data
+
+    def get_is_subscribed(self, obj):
+        print(f'!!!!!{obj}')
+        return Follow.objects.filter(
+            user=obj.user, author=obj.author
+        ).exists()
+    
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    # создание подписки
 
     class Meta:
         model = Follow

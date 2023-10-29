@@ -51,6 +51,7 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
 
 
 class FollowListView(ListAPIView):
+    # добавить пагинацию и затестить эндопойнт моих подписок
     serializer_class = FollowListSerializer
 
     def get_queryset(self):
