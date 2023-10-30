@@ -21,8 +21,15 @@ class ProfileSerializers(serializers.ModelSerializer):
                   'last_name',
                   'is_subscribed')
 
+    # def get_is_subscribed(self, obj):
+    #     print(f'!!!!!{obj}')
+    #     user = self.context.get('request').user
+    #     if user.is_anonymous:
+    #         return False
+    #     return Follow.objects.filter(user=user, author=obj.id).exists()
     def get_is_subscribed(self, obj):
-        return False
+        user = self.context['request'].user
+        return bool(obj.following.filter(user=user))
 
 
 class Hex2NameColor(serializers.Field):
@@ -155,46 +162,14 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         # создатьь рецепт, затем к созданному рецепту прикрутить теги и ингредиенты
-
-        # #print(validated_data)
-        # tags = validated_data.pop('tags')
-        # #print(validated_data)
-        # recipe_ingredients = validated_data.pop('ingredientamount_set')
-        # recipe = CookingRecipe.objects.create(**validated_data)
-        # for tag in tags:
-        #     CookingRecipeTag.objects.create(
-        #         tag=tag,
-        #         recipe=recipe
-        #     )
-        # for ingredient in recipe_ingredients:
-        #     ingr_id = ingredient.get('id')
-        #     print(type(ingr_id))
-        #     amount = ingredient.get('amount')
-        #     print(type(amount))
-        #     CookingRecipeIngredient.objects.create(
-        #         recipe=recipe,
-        #         ingredient=ingr_id,
-        #         amount=amount
-        #     )
-        #     print(222222222222)
-        # return CookingRecipeListSerializer(recipe)
         ingredients = validated_data.pop('ingredient_used')
         print(f'!!!!{ingredients}')
         tags = validated_data.pop('tags')
         recipe = CookingRecipe.objects.create(**validated_data)
-        # for tag in tags:
-        #     CookingRecipeTag.objects.create(
-        #         tag=tag,
-        #         recipe=recipe
-        #     )
+    
         for ingredient in ingredients:
             current_ingredient = ingredient.get('id')
             current_amount = ingredient.get('amount')
-            # CookingRecipeIngredient.objects.create(
-            #     recipe=recipe,
-            #     ingredient=current_ingredient,
-            #     amount=current_amount,
-            # )
             recipe.ingredients.add(
                 current_ingredient,
                 through_defaults={
@@ -240,24 +215,25 @@ class FollowListSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'email', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count')
-        
+
     def get_recipes(self, obj):
-        #recipes = []
+        #print(f'@@@{obj}')
+        #recipes = [] 
         request = self.context.get('request')
+        #print(f'!!!!!{request}')
         limit = request.GET.get('recipes_limit')
-        queryset = CookingRecipe.objects.filter(author=obj.author)
+        queryset = CookingRecipe.objects.filter(author=obj)
         if limit:
             queryset = queryset[:int(limit)]
         return FollowRecipeSerializers(queryset, many=True).data
 
     def get_is_subscribed(self, obj):
-        print(f'!!!!!{obj}')
-        return Follow.objects.filter(
-            user=obj.user, author=obj.author
-        ).exists()
-    
+        user = self.context['request'].user
+        return bool(obj.following.filter(user=user))
+
     def get_recipes_count(self, obj):
-        return obj.recipes.count()
+        print(obj)
+        return CookingRecipe.objects.filter(author=obj).count()
 
 
 class FollowSerializer(serializers.ModelSerializer):
@@ -268,6 +244,9 @@ class FollowSerializer(serializers.ModelSerializer):
         fields = ('user', 'following')
 
     def validate(self, data):
+        # опльзователь не может подписаться сам на себя,
+        # пользователь не может дважды подписоваться на одного и того же
+        # реализовать вью на APIView(post, delete)
         pass
 
     def to_representation(self, instance):
