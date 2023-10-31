@@ -20,6 +20,6 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     re_path(r'auth/', include('djoser.urls.authtoken')),
 
-    path('users/subscriptions', FollowListView.as_view()),
+    path('users/subscriptions/', FollowListView.as_view()),
     path('users/<int:pk>/subscribe/', APIFollow.as_view())
 ]

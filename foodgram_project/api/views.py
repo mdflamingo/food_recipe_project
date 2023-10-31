@@ -2,9 +2,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import filters, status
-from rest_framework.decorators import action, api_view, permission_classes
+# from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.generics import ListAPIView
+from rest_framework.pagination import LimitOffsetPagination
 
 from rest_framework import viewsets
 
@@ -37,7 +38,7 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 class CookingRecipeViewSet(viewsets.ModelViewSet):
     queryset = CookingRecipe.objects.all()
     serializer_class = CookingRecipesSerializer
-    pagination_class = None
+    pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny,)
     #filter_backends = [CookingRecipeSearchFilter,]
 
@@ -55,25 +56,34 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
 
 class FollowListView(ListAPIView):
     # добавить пагинацию и затестить эндопойнт моих подписок
+    #добавить фильтры и затестить эндпойнты
     serializer_class = FollowListSerializer
+    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         return User.objects.filter(following__user=self.request.user)
+        # current_user = self.request.user # Предполагается, что текущий пользователь авторизован
+        # limit = self.request.query_params.get('limit') # Получить количество объектов на странице
+        # print(limit)
+        # recipes_limit = self.request.query_params.get('recipes_limit') # Получить количество объектов внутри поля recipes
+
+        # following_users = current_user.following_users.all()
+
+        # # Ограничение количества объектов внутри поля recipes
+        # if recipes_limit:
+        #     following_users = following_users.prefetch_related('recipes')[:int(recipes_limit)]
+
+        # return following_users
 
 
 class APIFollow(APIView):
     def post(self, request, pk):
-        # serializer = FollowSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED) 
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
         user = request.user
         following = get_object_or_404(User, id=pk)
 
         if user == following:
             return Response({
-                'errors': 'Вы не можете подписываться на самого себя'
+                'errors': 'Невозможно подписаться на себя!'
             }, status=status.HTTP_400_BAD_REQUEST)
         if Follow.objects.filter(user=user, following=following).exists():
             return Response({
@@ -89,12 +99,10 @@ class APIFollow(APIView):
     def delete(self, request, pk):
         user = request.user
         following = get_object_or_404(User, id=pk)
-        # post.delete()
-        # return Response(status=status.HTTP_204_NO_CONTENT)
 
         if user == following:
             return Response({
-                'errors': 'Вы не можете отписываться от самого себя'
+                'errors': 'Невозможно отписаться от себя'
             }, status=status.HTTP_400_BAD_REQUEST)
         follow = Follow.objects.filter(user=user, following=following)
         if follow.exists():

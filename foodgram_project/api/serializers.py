@@ -21,15 +21,12 @@ class ProfileSerializers(serializers.ModelSerializer):
                   'last_name',
                   'is_subscribed')
 
-    # def get_is_subscribed(self, obj):
-    #     print(f'!!!!!{obj}')
-    #     user = self.context.get('request').user
-    #     if user.is_anonymous:
-    #         return False
-    #     return Follow.objects.filter(user=user, author=obj.id).exists()
     def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        return bool(obj.following.filter(user=user))
+        if not self.context["request"].user.pk:
+            return None
+        else:
+            user = self.context['request'].user
+            return bool(obj.following.filter(user=user))
 
 
 class Hex2NameColor(serializers.Field):
@@ -134,31 +131,6 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
     # добавить валидацию ингредиентов, игредиеты не должны повторятьсяю
     # реализовать уникальность ингредиентов на уровне класса
     # unique_together = ("name", "measurement_unit") в Meta
-
-    # def create(self, validated_data):
-    #     # создаем рецепт
-    #     # создаем теги
-    #     # создаем ингредиенты
-    #     print(validated_data)
-    #     tags = validated_data.pop('tags')
-    #     ingredients = validated_data.pop('ingredients')
-    #     print(f'!!!!{ingredients}!!!!')
-    #     print(type(ingredients))
-    #     recipe = CookingRecipe.objects.create(**validated_data)
-    #     for ingredient in ingredients:
-    #         print(f'{ingredient}')
-    #         amount = ingredient.get('amount')
-    #         id = list(ingredient.keys())
-    #         print(f'!!!{id}!!!')
-    #         recipe_ingredient = get_object_or_404(Ingredient, id=id[0])
-    #         CookingRecipeIngredient.objects.create(
-    #             recipe=recipe,
-    #             ingredient=recipe_ingredient,
-    #             amount=amount)
-            
-    #     for tag in tags():
-    #         recipe.add(tag)
-    #     return recipe
     
     def create(self, validated_data):
         # создатьь рецепт, затем к созданному рецепту прикрутить теги и ингредиенты
@@ -220,19 +192,22 @@ class FollowListSerializer(serializers.ModelSerializer):
         #print(f'@@@{obj}')
         #recipes = [] 
         request = self.context.get('request')
-        #print(f'!!!!!{request}')
+        print(f'!!!!!{request}')
         limit = request.GET.get('recipes_limit')
         queryset = CookingRecipe.objects.filter(author=obj)
+        print(f'))))){queryset}')
         if limit:
             queryset = queryset[:int(limit)]
         return FollowRecipeSerializers(queryset, many=True).data
 
     def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        return bool(obj.following.filter(user=user))
+        if not self.context["request"].user.pk:
+            return None
+        else:
+            user = self.context['request'].user
+            return bool(obj.following.filter(user=user))
 
     def get_recipes_count(self, obj):
-        print(obj)
         return CookingRecipe.objects.filter(author=obj).count()
 
 
@@ -243,11 +218,11 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ('user', 'following')
 
-    def validate(self, data):
-        # опльзователь не может подписаться сам на себя,
-        # пользователь не может дважды подписоваться на одного и того же
-        # реализовать вью на APIView(post, delete)
-        pass
+    # def validate(self, data):
+    #     # опльзователь не может подписаться сам на себя,
+    #     # пользователь не может дважды подписоваться на одного и того же
+    #     # реализовать вью на APIView(post, delete)
+    #     pass
 
     def to_representation(self, instance):
         return FollowListSerializer(instance.following, context=self.context).data
