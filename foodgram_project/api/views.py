@@ -6,12 +6,12 @@ from rest_framework import filters, status
 from djoser.views import UserViewSet
 # from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.generics import ListAPIView
+#from rest_framework.generics import ListAPIView
 from rest_framework.pagination import LimitOffsetPagination
 
 from rest_framework import viewsets
 
-from recipes.models import CookingRecipe, Tag, Ingredient
+from recipes.models import CookingRecipe, Tag, Ingredient, Favorite
 from users.models import User, Follow
 from .serializers import (CookingRecipesSerializer,
                           TagSerializer,
@@ -19,7 +19,8 @@ from .serializers import (CookingRecipesSerializer,
                           CookingRecipeListSerializer,
                           FollowListSerializer,
                           FollowSerializer,
-                          ProfileSerializers)
+                          ProfileSerializers,
+                          FavoriteSerializer)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -58,6 +59,7 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(UserViewSet):
+    """Список подписок."""
     # добавить пагинацию и затестить эндопойнт моих подписок
     #добавить фильтры и затестить эндпойнты
     # serializer_class = FollowListSerializer
@@ -67,7 +69,7 @@ class UserViewSet(UserViewSet):
     #     return User.objects.filter(following__user=self.request.user)
     queryset = User.objects.all()
     serializer_class = ProfileSerializers
-    pagination_class = LimitOffsetPagination
+    #pagination_class = LimitOffsetPagination
 
     # @action(
     #     detail=True,
@@ -110,6 +112,9 @@ class UserViewSet(UserViewSet):
 
 
 class APIFollow(APIView):
+    """Подписка и отписка от автора"""
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, pk):
         user = request.user
         following = get_object_or_404(User, id=pk)
@@ -142,3 +147,25 @@ class APIFollow(APIView):
             follow.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+class APIFavorite(APIView):
+    """добавленпе рецертов в избранное"""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        recipe = get_object_or_404(CookingRecipe, id=pk)
+        if Favorite.objects.filter(recipe=recipe).exists():
+            return Response({
+                'errors': 'Рецепт уже находится в избранном!'},
+                status=status.HTTP_400_BAD_REQUEST)
+        favorite = Favorite.objects.create(user=request.user, recipe=recipe)
+        serializer = FavoriteSerializer(favorite, context={'request': request})
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk):
+        recipe = get_object_or_404(CookingRecipe, id=pk)
+        favorite = Favorite.objects.filter(recipe=recipe)
+        if favorite.exists():
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)

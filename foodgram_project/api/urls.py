@@ -5,7 +5,8 @@ from .views import (CookingRecipeViewSet,
                     IngredientsViewSet,
                     TagViewSet,
                     UserViewSet,
-                    APIFollow)
+                    APIFollow,
+                    APIFavorite)
 
 router = routers.DefaultRouter()
 
@@ -20,6 +21,6 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     re_path(r'auth/', include('djoser.urls.authtoken')),
 
-    #path('users/subscriptions/', FollowListView.as_view()),
+    path('recipes/<int:pk>/favorite/', APIFavorite.as_view()),
     path('users/<int:pk>/subscribe/', APIFollow.as_view())
 ]

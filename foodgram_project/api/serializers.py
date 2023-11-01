@@ -8,7 +8,8 @@ from django.core.files.base import ContentFile
 from recipes.models import (CookingRecipe,
                             Tag,
                             Ingredient,
-                            CookingRecipeIngredient,)
+                            CookingRecipeIngredient,
+                            Favorite)
 from users.models import User, Follow
 
 
@@ -170,7 +171,7 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         return instance
 
 
-class FollowRecipeSerializers(serializers.ModelSerializer):
+class ReducedRecipeSerializers(serializers.ModelSerializer):
     class Meta:
         model = CookingRecipe
         fields = ('id', 'name',
@@ -198,7 +199,7 @@ class FollowListSerializer(serializers.ModelSerializer):
         print(f'))))){queryset}')
         if limit:
             queryset = queryset[:int(limit)]
-        return FollowRecipeSerializers(queryset, many=True).data
+        return ReducedRecipeSerializers(queryset, many=True).data
 
     def get_is_subscribed(self, obj):
         if not self.context["request"].user.pk:
@@ -226,3 +227,13 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return FollowListSerializer(instance.following, context=self.context).data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
+        print(f'!!!!{instance}')
+        return ReducedRecipeSerializers(instance.recipe, context=self.context).data

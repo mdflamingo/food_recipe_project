@@ -23,7 +23,6 @@ class CookingRecipe(models.Model):
         'Описание')
     ingredients = models.ManyToManyField(
         'Ingredient',
-        #blank=False,
         through='CookingRecipeIngredient')# related_name='recipe')
     tags = models.ManyToManyField(
         'Tag',)# related_name='recipe')
@@ -32,7 +31,7 @@ class CookingRecipe(models.Model):
         validators=[MinValueValidator(1)])
     
     def __str__(self):
-        return self.name
+        return f'{self.name}: {self.text}'
 
 
 class Tag(models.Model):
@@ -91,13 +90,21 @@ class CookingRecipeIngredient(models.Model):
         return f'{self.recipe}, {self.ingredient}, {self.amount}'
 
 
-# class CookingRecipeTag(models.Model):
-#     recipe = models.ForeignKey(
-#         CookingRecipe,
-#         on_delete=models.CASCADE)
-#     tag = models.ForeignKey(
-#         Tag,
-#         on_delete=models.CASCADE)
+class Favorite(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='favorite')
+    recipe = models.ForeignKey(CookingRecipe,
+                               on_delete=models.CASCADE,
+                               related_name='recipe')
 
-#     def __str__(self):
-#         return f'{self.tag} {self.recipe}'
+    class Meta:
+        constraints = [ 
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe'
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.user}: {self.recipe}'
