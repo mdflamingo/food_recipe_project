@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework import filters, status
+from djoser.views import UserViewSet
 # from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.generics import ListAPIView
@@ -16,7 +18,8 @@ from .serializers import (CookingRecipesSerializer,
                           IngredientsSerializer,
                           CookingRecipeListSerializer,
                           FollowListSerializer,
-                          FollowSerializer)
+                          FollowSerializer,
+                          ProfileSerializers)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -54,26 +57,56 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
     #     return super().perform_update(serializer)
 
 
-class FollowListView(ListAPIView):
+class UserViewSet(UserViewSet):
     # добавить пагинацию и затестить эндопойнт моих подписок
     #добавить фильтры и затестить эндпойнты
-    serializer_class = FollowListSerializer
+    # serializer_class = FollowListSerializer
+    # pagination_class = LimitOffsetPagination
+
+    # def get_queryset(self):
+    #     return User.objects.filter(following__user=self.request.user)
+    queryset = User.objects.all()
+    serializer_class = ProfileSerializers
     pagination_class = LimitOffsetPagination
 
-    def get_queryset(self):
-        return User.objects.filter(following__user=self.request.user)
-        # current_user = self.request.user # Предполагается, что текущий пользователь авторизован
-        # limit = self.request.query_params.get('limit') # Получить количество объектов на странице
-        # print(limit)
-        # recipes_limit = self.request.query_params.get('recipes_limit') # Получить количество объектов внутри поля recipes
+    # @action(
+    #     detail=True,
+    #     methods=['post', 'delete'],
+    #     permission_classes=[IsAuthenticated]
+    # )
+    # def subscribe(self, request, **kwargs):
+    #     user = request.user
+    #     author_id = self.kwargs.get('id')
+    #     following = get_object_or_404(User, id=author_id)
 
-        # following_users = current_user.following_users.all()
+    #     if request.method == 'POST':
+    #         serializer = FollowSerializer(following,
+    #                                       data=request.data,
+    #                                       context={"request": request})
+    #         print(f'!!!!{serializer}')
+    #         serializer.is_valid(raise_exception=True)
 
-        # # Ограничение количества объектов внутри поля recipes
-        # if recipes_limit:
-        #     following_users = following_users.prefetch_related('recipes')[:int(recipes_limit)]
+    #         Follow.objects.create(user=user, following=following)
 
-        # return following_users
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    #     if request.method == 'DELETE':
+    #         subscription = get_object_or_404(Follow,
+    #                                          user=user,
+    #                                          following=following)
+    #         subscription.delete()
+    #         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
+    def subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowListSerializer(pages, many=True, context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
 
 class APIFollow(APIView):
@@ -109,9 +142,3 @@ class APIFollow(APIView):
             follow.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-
-
-# def subscription()
-    
-
-# def unsubscribe()
