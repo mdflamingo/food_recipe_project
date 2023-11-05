@@ -1,17 +1,25 @@
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.db.models import Sum
 from rest_framework.views import APIView
 from rest_framework import filters, status
 from djoser.views import UserViewSet
 # from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
-#from rest_framework.generics import ListAPIView
 from rest_framework.pagination import LimitOffsetPagination
 
 from rest_framework import viewsets
 
-from recipes.models import CookingRecipe, Tag, Ingredient, Favorite
+from recipes.models import (CookingRecipe,
+                            CookingRecipeIngredient,
+                            Tag,
+                            Ingredient,
+                            Favorite,
+                            ShoppingList)
 from users.models import User, Follow
 from .serializers import (CookingRecipesSerializer,
                           TagSerializer,
@@ -20,7 +28,8 @@ from .serializers import (CookingRecipesSerializer,
                           FollowListSerializer,
                           FollowSerializer,
                           ProfileSerializers,
-                          FavoriteSerializer)
+                          FavoriteSerializer,
+                          ShoppingListSerializers)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -56,6 +65,33 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
 
     # def perform_update(self, serializer):
     #     return super().perform_update(serializer)
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated],
+        methods=['get']
+    )
+    def download_shopping_cart(self, reuest):
+        user = reuest.user
+        if not user.shopping_cart.exists():
+            return Response({
+                'errors': 'Отсутствует список покупок!'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        ingredients = (
+            CookingRecipeIngredient.objects
+            .filter(recipe__recipe_shopping_cart__user=reuest.user)
+            .values('ingredient')
+            .annotate(total_num=Sum('amount'))
+            .values_list('ingredient__name',
+                         'ingredient__measurement_unit',
+                         'total_num'))
+        
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+
+        for ingredient in ingredients:
+            response.write(f'{ingredient[0]}, {ingredient[1]}: {ingredient[2]}\n')
+
+        return response
 
 
 class UserViewSet(UserViewSet):
@@ -69,35 +105,6 @@ class UserViewSet(UserViewSet):
     #     return User.objects.filter(following__user=self.request.user)
     queryset = User.objects.all()
     serializer_class = ProfileSerializers
-    #pagination_class = LimitOffsetPagination
-
-    # @action(
-    #     detail=True,
-    #     methods=['post', 'delete'],
-    #     permission_classes=[IsAuthenticated]
-    # )
-    # def subscribe(self, request, **kwargs):
-    #     user = request.user
-    #     author_id = self.kwargs.get('id')
-    #     following = get_object_or_404(User, id=author_id)
-
-    #     if request.method == 'POST':
-    #         serializer = FollowSerializer(following,
-    #                                       data=request.data,
-    #                                       context={"request": request})
-    #         print(f'!!!!{serializer}')
-    #         serializer.is_valid(raise_exception=True)
-
-    #         Follow.objects.create(user=user, following=following)
-
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    #     if request.method == 'DELETE':
-    #         subscription = get_object_or_404(Follow,
-    #                                          user=user,
-    #                                          following=following)
-    #         subscription.delete()
-    #         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
@@ -150,7 +157,7 @@ class APIFollow(APIView):
 
 class APIFavorite(APIView):
     """добавленпе рецертов в избранное"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # может просмтаривать только автор
 
     def post(self, request, pk):
         recipe = get_object_or_404(CookingRecipe, id=pk)
@@ -169,3 +176,28 @@ class APIFavorite(APIView):
         if favorite.exists():
             favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class APIShoppingList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        recipe = get_object_or_404(CookingRecipe, id=pk)
+        if ShoppingList.objects.filter(recipe=recipe).exists():
+            return Response({
+                'errors': 'Рецепт добавлен в список покупок!'},
+                status=status.HTTP_400_BAD_REQUEST)
+        shopping_cart = ShoppingList.objects.create(user=request.user, recipe=recipe)
+        serializer = ShoppingListSerializers(shopping_cart, context={'request': request})
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, pk):
+        recipe = get_object_or_404(CookingRecipe, id=pk)
+        shopping_cart = ShoppingList.objects.filter(recipe=recipe)
+        if shopping_cart.exists():
+            shopping_cart.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({
+                'errors': 'Рецепт не добавлен в список покупок!'})

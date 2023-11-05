@@ -9,7 +9,8 @@ from recipes.models import (CookingRecipe,
                             Tag,
                             Ingredient,
                             CookingRecipeIngredient,
-                            Favorite)
+                            Favorite,
+                            ShoppingList)
 from users.models import User, Follow
 
 
@@ -193,10 +194,8 @@ class FollowListSerializer(serializers.ModelSerializer):
         #print(f'@@@{obj}')
         #recipes = [] 
         request = self.context.get('request')
-        print(f'!!!!!{request}')
         limit = request.GET.get('recipes_limit')
         queryset = CookingRecipe.objects.filter(author=obj)
-        print(f'))))){queryset}')
         if limit:
             queryset = queryset[:int(limit)]
         return ReducedRecipeSerializers(queryset, many=True).data
@@ -236,4 +235,13 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         print(f'!!!!{instance}')
+        return ReducedRecipeSerializers(instance.recipe, context=self.context).data
+
+
+class ShoppingListSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = ShoppingList
+        fields = ('user', 'recipe')
+
+    def to_representation(self, instance):
         return ReducedRecipeSerializers(instance.recipe, context=self.context).data

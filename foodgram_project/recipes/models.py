@@ -99,7 +99,7 @@ class Favorite(models.Model):
                                related_name='recipe')
 
     class Meta:
-        constraints = [ 
+        constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='unique_user_recipe'
@@ -107,4 +107,24 @@ class Favorite(models.Model):
         ]
 
     def __str__(self):
+        return f'{self.user}: {self.recipe}'
+
+
+class ShoppingList(models.Model):
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='shopping_cart')
+    recipe = models.ForeignKey(CookingRecipe,
+                               on_delete=models.CASCADE,
+                               related_name='recipe_shopping_cart')
+
+    class Meta:
+        constraints = [ 
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe_in_shopping_cart'
+            )
+        ]
+
+    def __str__(self) -> str:
         return f'{self.user}: {self.recipe}'
