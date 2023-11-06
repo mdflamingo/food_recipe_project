@@ -5,6 +5,8 @@ from users.models import User
 
 
 class CookingRecipe(models.Model):
+    """Модель кулинарного рецепта."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -31,6 +33,8 @@ class CookingRecipe(models.Model):
 
 
 class Tag(models.Model):
+    """Модель тега."""
+
     name = models.CharField(
         'Название',
         max_length=200,
@@ -49,6 +53,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """Модель ингредиента."""
+
     name = models.CharField(
         'Название',
         max_length=200)
@@ -70,6 +76,8 @@ class Ingredient(models.Model):
 
 
 class CookingRecipeIngredient(models.Model):
+    """Промежуточная модель для кулинарного рецепта и ингредиента."""
+
     recipe = models.ForeignKey(
         CookingRecipe,
         on_delete=models.CASCADE,
@@ -88,6 +96,8 @@ class CookingRecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
+    """Модель избранных рецептов."""
+
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
                              related_name='favorite')
@@ -108,6 +118,8 @@ class Favorite(models.Model):
 
 
 class ShoppingList(models.Model):
+    """Модель списка покупок."""
+
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
                              related_name='shopping_cart')

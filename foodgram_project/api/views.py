@@ -31,18 +31,25 @@ from .serializers import (CookingRecipeListSerializer,
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """Получение тегов."""
+
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     # filter_backends = [IngredientsSerchFilter, ]
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
+    """Получение ингредиентов."""
+
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
     # filter_backends = [IngredientsSerchFilter, ]
 
 
 class CookingRecipeViewSet(viewsets.ModelViewSet):
+    """Создание, удаление, изменение, получение рецепта(рецептов).
+    Скачивание списка покупок."""
+
     queryset = CookingRecipe.objects.all()
     serializer_class = CookingRecipesSerializer
     pagination_class = LimitOffsetPagination
@@ -98,7 +105,8 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(UserViewSet):
-    """Список подписок."""
+    """Получение списка подписок."""
+
     queryset = User.objects.all()
     serializer_class = ProfileSerializers
 
@@ -116,7 +124,8 @@ class UserViewSet(UserViewSet):
 
 
 class APIFollow(APIView):
-    """Подписка и отписка от автора"""
+    """Подписка и отписка от автора."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
@@ -153,7 +162,8 @@ class APIFollow(APIView):
 
 
 class APIFavorite(APIView):
-    """добавленпе рецертов в избранное"""
+    """Добавление рецептов в избранное и удаление из них."""
+
     permission_classes = [IsAuthenticated]
     # может просмтаривать только автор
 
@@ -177,6 +187,8 @@ class APIFavorite(APIView):
 
 
 class APIShoppingList(APIView):
+    """Добавление и удаление рецептов из списка покупок."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
@@ -200,4 +212,4 @@ class APIShoppingList(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response({
-                'errors': 'Рецепт не добавлен в список покупок!'})
+                'errors': 'Рецепт не был добавлен в список покупок!'})

@@ -14,6 +14,8 @@ from users.models import Follow, User
 
 
 class ProfileSerializers(serializers.ModelSerializer):
+    """Сериализатор пользователя."""
+
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -42,6 +44,8 @@ class ProfileSerializers(serializers.ModelSerializer):
 
 
 class Hex2NameColor(serializers.Field):
+    """Сериализатор для передачи цветогого кода."""
+
     def to_representation(self, value):
         return value
 
@@ -54,6 +58,8 @@ class Hex2NameColor(serializers.Field):
 
 
 class Base64ImageField(serializers.ImageField):
+    """Сериализатор для декодирования изображения рецепта."""
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -63,6 +69,8 @@ class Base64ImageField(serializers.ImageField):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для тегов."""
+
     color = Hex2NameColor()
 
     class Meta:
@@ -71,12 +79,16 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов."""
+
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
 class ReadCookingRecipesSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения."""
+
     id = serializers.ReadOnlyField(
         source='ingredient.id')
     name = serializers.ReadOnlyField(
@@ -90,6 +102,8 @@ class ReadCookingRecipesSerializer(serializers.ModelSerializer):
 
 
 class AddIngredientsSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления ингредиентов."""
+
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
     amount = serializers.IntegerField(min_value=1)
 
@@ -99,7 +113,8 @@ class AddIngredientsSerializer(serializers.ModelSerializer):
 
 
 class CookingRecipeListSerializer(serializers.ModelSerializer):
-    # получение рецепта GET
+    """Сериализатор для получения списка рецептов или рецепта."""
+
     ingredients = ReadCookingRecipesSerializer(
         many=True,
         source='ingredient_used')
@@ -124,7 +139,8 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
 
 
 class CookingRecipesSerializer(serializers.ModelSerializer):
-    # cоздание рецепта
+    """Сериализатор для создания или изменения рецепта."""
+
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all())
@@ -214,6 +230,8 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
 
 
 class ReducedRecipeSerializers(serializers.ModelSerializer):
+    """Урезанный сериализатор рецепта."""
+
     class Meta:
         model = CookingRecipe
         fields = ('id', 'name',
@@ -221,7 +239,8 @@ class ReducedRecipeSerializers(serializers.ModelSerializer):
 
 
 class FollowListSerializer(serializers.ModelSerializer):
-    # список подписок
+    """Сериализатор для получения списка подписок."""
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
     is_subscribed = serializers.SerializerMethodField()
@@ -249,7 +268,7 @@ class FollowListSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    # создание подписки
+    """Сериализатор для создания подписки на автора."""
 
     class Meta:
         model = Follow
@@ -262,6 +281,8 @@ class FollowSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для добавления рецепта в избранное."""
+
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
@@ -273,6 +294,8 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingListSerializers(serializers.ModelSerializer):
+    """Сериализатор для получения списка покупок."""
+
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
