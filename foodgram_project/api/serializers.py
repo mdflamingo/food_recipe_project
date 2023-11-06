@@ -110,10 +110,8 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
         fields = ('ingredients', 'author',
                   'name', 'image', 'text', 'cooking_time', 'tags',
                   'is_in_shopping_cart', 'is_favorited')
-        
+
     def get_is_in_shopping_cart(self, obj):
-        print(f'((((({obj}')
-        print(type(obj))
         return ShoppingList.objects.filter(recipe=obj).exists()
 
     def get_is_favorited(self, obj):
@@ -155,13 +153,13 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
     # добавить валидацию ингредиентов, игредиеты не должны повторятьсяю
     # реализовать уникальность ингредиентов на уровне класса
     # unique_together = ("name", "measurement_unit") в Meta
-    
+
     def create(self, validated_data):
         # создатьь рецепт, затем к созданному рецепту прикрутить теги и ингредиенты
         ingredients = validated_data.pop('ingredient_used')
         tags = validated_data.pop('tags')
         recipe = CookingRecipe.objects.create(**validated_data)
-    
+
         for ingredient in ingredients:
             current_ingredient = ingredient.get('id')
             current_amount = ingredient.get('amount')
@@ -175,21 +173,35 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
                 recipe.tags.add(tag)
         return recipe
 
-    def to_representation(self, instance):
-        return CookingRecipeListSerializer(instance, context=self.context).data
-
     def update(self, instance, validated_data):
-        # обновляем ингредиенты
-        # обновляем теги
-        # обновляем рецепт
-        instance.tags = validated_data.get('tags', instance.tags)
-        instance.ingredients = validated_data.get('ingredients', instance.ingredients)
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredient_used')
+
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        instance.cooking_time = validated_data.get('cooking_time',
+                                                   instance.cooking_time)
         instance.image = validated_data.get('image', instance.image)
+
+        instance.tags.clear()
+        instance.tags.set(tags)
+
+        instance.ingredients.clear()
+
+        for ingredient in ingredients:
+            current_ingredient = ingredient.get('id')
+            current_amount = ingredient.get('amount')
+            instance.ingredients.add(
+                current_ingredient,
+                through_defaults={
+                    'amount': current_amount,
+                }
+            )
         instance.save()
         return instance
+
+    def to_representation(self, instance):
+        return CookingRecipeListSerializer(instance, context=self.context).data
 
 
 class ReducedRecipeSerializers(serializers.ModelSerializer):

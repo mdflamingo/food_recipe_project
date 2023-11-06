@@ -65,6 +65,7 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
 
     # def perform_update(self, serializer):
     #     return super().perform_update(serializer)
+
     @action(
         detail=False,
         permission_classes=[IsAuthenticated],

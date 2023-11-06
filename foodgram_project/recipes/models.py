@@ -23,13 +23,14 @@ class CookingRecipe(models.Model):
         'Описание')
     ingredients = models.ManyToManyField(
         'Ingredient',
-        through='CookingRecipeIngredient')# related_name='recipe')
+        'Ингредиенты',
+        through='CookingRecipeIngredient')
     tags = models.ManyToManyField(
-        'Tag',)# related_name='recipe')
+        'Tag', 'Tег')
     cooking_time = models.IntegerField(
         'Время приготовления',
         validators=[MinValueValidator(1)])
-    
+
     def __str__(self):
         return f'{self.name}: {self.text}'
 
