@@ -1,36 +1,33 @@
-from django.http import HttpResponse
-
-from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework.decorators import action
 from django.db.models import Sum
-from rest_framework.views import APIView
-from rest_framework import filters, status
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+# from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
-from .permissions import IsAuthorOrReadOnlyPermission
-
-
-from rest_framework import viewsets
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from recipes.models import (CookingRecipe,
                             CookingRecipeIngredient,
-                            Tag,
-                            Ingredient,
                             Favorite,
-                            ShoppingList)
-from users.models import User, Follow
-from .serializers import (CookingRecipesSerializer,
-                          TagSerializer,
-                          IngredientsSerializer,
-                          CookingRecipeListSerializer,
+                            Ingredient,
+                            ShoppingList,
+                            Tag)
+from users.models import Follow, User
+
+from .permissions import IsAuthorOrReadOnlyPermission
+from .serializers import (CookingRecipeListSerializer,
+                          CookingRecipesSerializer,
+                          FavoriteSerializer,
                           FollowListSerializer,
                           FollowSerializer,
+                          IngredientsSerializer,
                           ProfileSerializers,
-                          FavoriteSerializer,
-                          ShoppingListSerializers)
+                          ShoppingListSerializers,
+                          TagSerializer)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -50,7 +47,7 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
     serializer_class = CookingRecipesSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny,)
-    #filter_backends = [CookingRecipeSearchFilter,]
+    # filter_backends = [CookingRecipeSearchFilter,]
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -60,11 +57,6 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    # def perform_update(self, serializer):
-    #     return super().perform_update(serializer)
-
-    # def get_permissions(self):
-    #     return super().get_permissions()
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             permission_classes = [AllowAny]
@@ -95,18 +87,18 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
                          'total_num'))
 
         response = HttpResponse(content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        response['Content-Disposition'] = 'attachment;'
+        'filename="shopping_list.txt"'
 
         for ingredient in ingredients:
-            response.write(f'{ingredient[0]}, {ingredient[1]}: {ingredient[2]}\n')
+            response.write(
+                f'{ingredient[0]}, {ingredient[1]}: {ingredient[2]}\n')
 
         return response
 
 
 class UserViewSet(UserViewSet):
     """Список подписок."""
-    # добавить пагинацию и затестить эндопойнт моих подписок
-    #добавить фильтры и затестить эндпойнты
     queryset = User.objects.all()
     serializer_class = ProfileSerializers
 
@@ -118,7 +110,8 @@ class UserViewSet(UserViewSet):
         user = request.user
         queryset = User.objects.filter(following__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = FollowListSerializer(pages, many=True, context={'request': request})
+        serializer = FollowListSerializer(pages, many=True,
+                                          context={'request': request})
         return self.get_paginated_response(serializer.data)
 
 
@@ -161,7 +154,8 @@ class APIFollow(APIView):
 
 class APIFavorite(APIView):
     """добавленпе рецертов в избранное"""
-    permission_classes = [IsAuthenticated] # может просмтаривать только автор
+    permission_classes = [IsAuthenticated]
+    # может просмтаривать только автор
 
     def post(self, request, pk):
         recipe = get_object_or_404(CookingRecipe, id=pk)
@@ -191,8 +185,10 @@ class APIShoppingList(APIView):
             return Response({
                 'errors': 'Рецепт добавлен в список покупок!'},
                 status=status.HTTP_400_BAD_REQUEST)
-        shopping_cart = ShoppingList.objects.create(user=request.user, recipe=recipe)
-        serializer = ShoppingListSerializers(shopping_cart, context={'request': request})
+        shopping_cart = ShoppingList.objects.create(user=request.user,
+                                                    recipe=recipe)
+        serializer = ShoppingListSerializers(shopping_cart,
+                                             context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

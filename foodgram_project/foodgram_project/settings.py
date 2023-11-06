@@ -1,6 +1,7 @@
-from pathlib import Path
-from dotenv import load_dotenv
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -134,11 +135,4 @@ DJOSER = {
         'user': 'api.serializers.ProfileSerializers',
         'current_user': 'api.serializers.ProfileSerializers',
     },
-    # 'PERMISSIONS': {
-    #     'user': ['rest_framework.permissions.AllowAny'],
-    #     'current_user': ['rest_framework.permissions.AllowAny'],
-    # },
-    # 'HIDE_USERS': False
 }
-
-

@@ -1,13 +1,13 @@
-from rest_framework import routers
 from django.urls import include, path, re_path
-# from djoser.views import UserViewSet
-from .views import (CookingRecipeViewSet,
+from rest_framework import routers
+
+from .views import (APIFavorite,
+                    APIFollow,
+                    APIShoppingList,
+                    CookingRecipeViewSet,
                     IngredientsViewSet,
                     TagViewSet,
-                    UserViewSet,
-                    APIFollow,
-                    APIFavorite,
-                    APIShoppingList)
+                    UserViewSet)
 
 router = routers.DefaultRouter()
 

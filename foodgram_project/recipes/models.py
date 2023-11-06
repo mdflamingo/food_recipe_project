@@ -3,30 +3,25 @@ from django.db import models
 
 from users.models import User
 
-#User = get_user_model()
-
 
 class CookingRecipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipe',
-        blank=False)
+        related_name='recipe')
     name = models.CharField(
         'Название',
         max_length=200)
     image = models.ImageField(
         'Фото рецепта',
-        upload_to='recipes/images/',
-        blank=False)
+        upload_to='recipes/images/')
     text = models.TextField(
         'Описание')
     ingredients = models.ManyToManyField(
         'Ingredient',
-        'Ингредиенты',
         through='CookingRecipeIngredient')
     tags = models.ManyToManyField(
-        'Tag', 'Tег')
+        'Tag',)
     cooking_time = models.IntegerField(
         'Время приготовления',
         validators=[MinValueValidator(1)])
@@ -65,7 +60,8 @@ class Ingredient(models.Model):
     class Meta:
         ordering = ('name', )
         # constraints = [
-        #     models.UniqueConstraint(fields=['name', 'measurement_unit'], name='name_measurement_unit')
+        #     models.UniqueConstraint(fields=['name',
+        # 'measurement_unit'], name='name_measurement_unit')
         # ]
         unique_together = ('name', 'measurement_unit')
 
@@ -120,7 +116,7 @@ class ShoppingList(models.Model):
                                related_name='recipe_shopping_cart')
 
     class Meta:
-        constraints = [ 
+        constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
                 name='unique_user_recipe_in_shopping_cart'
