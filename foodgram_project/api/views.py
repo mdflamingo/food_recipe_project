@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-from reportlab.pdfgen import canvas
 
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -8,9 +7,11 @@ from django.db.models import Sum
 from rest_framework.views import APIView
 from rest_framework import filters, status
 from djoser.views import UserViewSet
-# from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
+from .permissions import IsAuthorOrReadOnlyPermission
+
 
 from rest_framework import viewsets
 
@@ -35,16 +36,12 @@ from .serializers import (CookingRecipesSerializer,
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    # pagination_class = None
-    # permission_classes = (AllowAny,)
     # filter_backends = [IngredientsSerchFilter, ]
 
 
 class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
-    # pagination_class = None
-    # permission_classes = (AllowAny,)
     # filter_backends = [IngredientsSerchFilter, ]
 
 
@@ -66,6 +63,17 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
     # def perform_update(self, serializer):
     #     return super().perform_update(serializer)
 
+    # def get_permissions(self):
+    #     return super().get_permissions()
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            permission_classes = [AllowAny]
+        elif self.action == 'post':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthorOrReadOnlyPermission]
+        return [permission() for permission in permission_classes]
+
     @action(
         detail=False,
         permission_classes=[IsAuthenticated],
@@ -85,7 +93,7 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
             .values_list('ingredient__name',
                          'ingredient__measurement_unit',
                          'total_num'))
-        
+
         response = HttpResponse(content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
 
@@ -99,11 +107,6 @@ class UserViewSet(UserViewSet):
     """Список подписок."""
     # добавить пагинацию и затестить эндопойнт моих подписок
     #добавить фильтры и затестить эндпойнты
-    # serializer_class = FollowListSerializer
-    # pagination_class = LimitOffsetPagination
-
-    # def get_queryset(self):
-    #     return User.objects.filter(following__user=self.request.user)
     queryset = User.objects.all()
     serializer_class = ProfileSerializers
 

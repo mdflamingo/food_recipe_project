@@ -37,10 +37,9 @@ class ProfileSerializers(serializers.ModelSerializer):
     #         return False
     #     return Follow.objects.filter(user=user, following=obj).exists()
     def get_is_subscribed(self, obj):
-        user = self.context['request'].user
+        user = self.context.get('request').user
         return (
-            user.is_authenticated and bool(obj.following.filter(user=user))
-        )
+            user.is_authenticated and bool(obj.following.filter(user=user)))
 
 
 class Hex2NameColor(serializers.Field):
@@ -99,7 +98,9 @@ class AddIngredientsSerializer(serializers.ModelSerializer):
 
 class CookingRecipeListSerializer(serializers.ModelSerializer):
     # получение рецепта GET
-    ingredients = ReadCookingRecipesSerializer(many=True, source='ingredient_used')
+    ingredients = ReadCookingRecipesSerializer(
+        many=True,
+        source='ingredient_used')
     tags = TagSerializer(many=True, read_only=True)
     author = ProfileSerializers(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -120,10 +121,12 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
 
 class CookingRecipesSerializer(serializers.ModelSerializer):
     # cоздание рецепта
-    tags = serializers.PrimaryKeyRelatedField(many=True,
-                                              queryset=Tag.objects.all())
-    ingredients = AddIngredientsSerializer(many=True,
-                                           source='ingredient_used')
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all())
+    ingredients = AddIngredientsSerializer(
+        many=True,
+        source='ingredient_used')
     image = Base64ImageField()
 
     class Meta:
@@ -240,10 +243,9 @@ class FollowListSerializer(serializers.ModelSerializer):
     #         user = self.context['request'].user
     #         return bool(obj.following.filter(user=user))
     def get_is_subscribed(self, obj):
-        user = self.context['request'].user
+        user = self.context.get('request').user
         return (
-            user.is_authenticated and bool(obj.subscriber.filter(user=user))
-        )
+            user.is_authenticated and bool(obj.subscriber.filter(user=user)))
 
     def get_recipes_count(self, obj):
         return CookingRecipe.objects.filter(author=obj).count()
@@ -263,7 +265,9 @@ class FollowSerializer(serializers.ModelSerializer):
     #     pass
 
     def to_representation(self, instance):
-        return FollowListSerializer(instance.following, context=self.context).data
+        return FollowListSerializer(
+            instance.following,
+            context=self.context).data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -272,7 +276,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
-        return ReducedRecipeSerializers(instance.recipe, context=self.context).data
+        return ReducedRecipeSerializers(
+            instance.recipe,
+            context=self.context).data
 
 
 class ShoppingListSerializers(serializers.ModelSerializer):
@@ -281,4 +287,6 @@ class ShoppingListSerializers(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
-        return ReducedRecipeSerializers(instance.recipe, context=self.context).data
+        return ReducedRecipeSerializers(
+            instance.recipe,
+            context=self.context).data
