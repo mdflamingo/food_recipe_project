@@ -23,12 +23,24 @@ class ProfileSerializers(serializers.ModelSerializer):
                   'last_name',
                   'is_subscribed')
 
+    # def get_is_subscribed(self, obj):
+    #     # print(obj)
+    #     # if not self.context["request"].user.pk:
+    #     #     return None
+    #     # else:
+    #     #     user = self.context['request'].user
+    #     print(self.context)
+    #     return bool(obj.following.filter(user=request.user))
+    # def get_is_subscribed(self, obj):
+    #     user = self.context.get('request').user
+    #     if user.is_anonymous:
+    #         return False
+    #     return Follow.objects.filter(user=user, following=obj).exists()
     def get_is_subscribed(self, obj):
-        if not self.context["request"].user.pk:
-            return None
-        else:
-            user = self.context['request'].user
-            return bool(obj.following.filter(user=user))
+        user = self.context['request'].user
+        return (
+            user.is_authenticated and bool(obj.following.filter(user=user))
+        )
 
 
 class Hex2NameColor(serializers.Field):
@@ -90,17 +102,28 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
     ingredients = ReadCookingRecipesSerializer(many=True, source='ingredient_used')
     tags = TagSerializer(many=True, read_only=True)
     author = ProfileSerializers(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField()
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = CookingRecipe
         fields = ('ingredients', 'author',
-                  'name', 'image', 'text', 'cooking_time', 'tags')
+                  'name', 'image', 'text', 'cooking_time', 'tags',
+                  'is_in_shopping_cart', 'is_favorited')
+        
+    def get_is_in_shopping_cart(self, obj):
+        print(f'((((({obj}')
+        print(type(obj))
+        return ShoppingList.objects.filter(recipe=obj).exists()
+
+    def get_is_favorited(self, obj):
+        return Favorite.objects.filter(recipe=obj).exists()
 
 
 class CookingRecipesSerializer(serializers.ModelSerializer):
     # cоздание рецепта
-    tags = serializers.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
-    #tags = TagSerializer(many=True)
+    tags = serializers.PrimaryKeyRelatedField(many=True,
+                                              queryset=Tag.objects.all())
     ingredients = AddIngredientsSerializer(many=True,
                                            source='ingredient_used')
     image = Base64ImageField()
@@ -127,7 +150,6 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         #     is_exist = Ingredient.objects.filter(id=id).exists()
         #     if not is_exist:
         #         raise serializers.ValidationError({'ingredients': 'Ингредиент c выбранным id не существует!'})
-        print(f'111!!!!{data}!!!!2222')
         return data
 
     # добавить валидацию ингредиентов, игредиеты не должны повторятьсяю
@@ -137,7 +159,6 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # создатьь рецепт, затем к созданному рецепту прикрутить теги и ингредиенты
         ingredients = validated_data.pop('ingredient_used')
-        print(f'!!!!{ingredients}')
         tags = validated_data.pop('tags')
         recipe = CookingRecipe.objects.create(**validated_data)
     
@@ -152,11 +173,10 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
             )
             for tag in tags:
                 recipe.tags.add(tag)
-        return CookingRecipeListSerializer(recipe)
-    
+        return recipe
+
     def to_representation(self, instance):
-        recipe_serializer = CookingRecipeListSerializer(instance)
-        return recipe_serializer.data
+        return CookingRecipeListSerializer(instance, context=self.context).data
 
     def update(self, instance, validated_data):
         # обновляем ингредиенты
@@ -200,12 +220,18 @@ class FollowListSerializer(serializers.ModelSerializer):
             queryset = queryset[:int(limit)]
         return ReducedRecipeSerializers(queryset, many=True).data
 
+    # def get_is_subscribed(self, obj):
+    #     print(f'!!!!!!{obj}')
+    #     if not self.context["request"].user.pk:
+    #         return None
+    #     else:
+    #         user = self.context['request'].user
+    #         return bool(obj.following.filter(user=user))
     def get_is_subscribed(self, obj):
-        if not self.context["request"].user.pk:
-            return None
-        else:
-            user = self.context['request'].user
-            return bool(obj.following.filter(user=user))
+        user = self.context['request'].user
+        return (
+            user.is_authenticated and bool(obj.subscriber.filter(user=user))
+        )
 
     def get_recipes_count(self, obj):
         return CookingRecipe.objects.filter(author=obj).count()
@@ -234,7 +260,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
     def to_representation(self, instance):
-        print(f'!!!!{instance}')
         return ReducedRecipeSerializers(instance.recipe, context=self.context).data
 
 
