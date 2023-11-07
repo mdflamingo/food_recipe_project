@@ -5,6 +5,8 @@ from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -45,7 +47,8 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
-    # filter_backends = [IngredientsSerchFilter, ]
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    search_fields = ('^name',)
 
 
 class CookingRecipeViewSet(viewsets.ModelViewSet):
