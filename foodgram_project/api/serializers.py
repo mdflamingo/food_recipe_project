@@ -16,7 +16,8 @@ from users.models import Follow, User
 class ProfileSerializers(serializers.ModelSerializer):
     """Сериализатор пользователя."""
 
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(
+        method_name='get_is_subscribed')
 
     class Meta:
         model = User
@@ -120,8 +121,10 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
         source='ingredient_used')
     tags = TagSerializer(many=True, read_only=True)
     author = ProfileSerializers(read_only=True)
-    is_in_shopping_cart = serializers.SerializerMethodField()
-    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField(
+        method_name='get_is_in_shopping_cart')
+    is_favorited = serializers.SerializerMethodField(
+        method_name='get_is_favorited')
 
     class Meta:
         model = CookingRecipe
@@ -241,9 +244,12 @@ class ReducedRecipeSerializers(serializers.ModelSerializer):
 class FollowListSerializer(serializers.ModelSerializer):
     """Сериализатор для получения списка подписок."""
 
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
-    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField(
+        method_name='get_recipes')
+    recipes_count = serializers.SerializerMethodField(
+        method_name='get_recipes_count')
+    is_subscribed = serializers.SerializerMethodField(
+        method_name='get_is_subscribed')
 
     class Meta:
         model = User

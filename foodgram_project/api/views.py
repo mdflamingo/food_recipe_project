@@ -4,11 +4,12 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-# from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 
 from recipes.models import (CookingRecipe,
                             CookingRecipeIngredient,
@@ -28,6 +29,7 @@ from .serializers import (CookingRecipeListSerializer,
                           ProfileSerializers,
                           ShoppingListSerializers,
                           TagSerializer)
+from .filters import RecipeFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -54,7 +56,8 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
     serializer_class = CookingRecipesSerializer
     pagination_class = LimitOffsetPagination
     permission_classes = (AllowAny,)
-    # filter_backends = [CookingRecipeSearchFilter,]
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
