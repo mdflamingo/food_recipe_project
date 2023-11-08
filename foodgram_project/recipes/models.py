@@ -16,7 +16,7 @@ class CookingRecipe(models.Model):
         max_length=200)
     image = models.ImageField(
         'Фото рецепта',
-        upload_to='recipes/images/')
+        upload_to='recipes/')
     text = models.TextField(
         'Описание')
     ingredients = models.ManyToManyField(

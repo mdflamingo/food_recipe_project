@@ -1,7 +1,5 @@
-
-from django_filters.rest_framework import (FilterSet,
-                                           AllValuesMultipleFilter,
-                                           BooleanFilter,
+from django_filters.rest_framework import (AllValuesMultipleFilter,
+                                           BooleanFilter, FilterSet,
                                            NumberFilter)
 
 from recipes.models import CookingRecipe
@@ -27,15 +25,14 @@ class RecipeFilter(FilterSet):
 
     def filter_is_favorited(self, queryset, name, value):
         user = self.request.user
-        if value:
+        if value and user.is_authenticated:
             return CookingRecipe.objects.filter(
                 recipe__user=user)
-
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         user = self.request.user
-        if value:
+        if value and user.is_authenticated:
             return CookingRecipe.objects.filter(
                 recipe_shopping_cart__user=user)
 

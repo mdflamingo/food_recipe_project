@@ -4,12 +4,8 @@ import webcolors
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from recipes.models import (CookingRecipe,
-                            CookingRecipeIngredient,
-                            Favorite,
-                            Ingredient,
-                            ShoppingList,
-                            Tag)
+from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
+                            Ingredient, ShoppingList, Tag)
 from users.models import Follow, User
 
 
@@ -30,15 +26,6 @@ class ProfileSerializers(serializers.ModelSerializer):
         if user.is_anonymous:
             return False
         return Follow.objects.filter(user=user, following=obj).exists()
-    # def get_is_subscribed(self, obj):
-    #     user = self.context.get('request').user
-    #     return (
-    #         user.is_authenticated and bool(obj.following.filter(user=user)))
-
-    def to_representation(self, instance):
-        if instance.is_authenticated:
-            return super().to_representation(instance)
-        return {}
 
 
 class Hex2NameColor(serializers.Field):
@@ -152,7 +139,6 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all())
     ingredients = AddIngredientsSerializer(
         many=True)
-    # source='ingredient_used')
     image = Base64ImageField()
 
     class Meta:
