@@ -252,10 +252,6 @@ class FollowListSerializer(serializers.ModelSerializer):
             queryset = queryset[:int(limit)]
         return ReducedRecipeSerializers(queryset, many=True).data
 
-    # def get_is_subscribed(self, obj):
-    #     user = self.context.get('request').user
-    #     return (
-    #         user.is_authenticated and bool(obj.subscriber.filter(user=user)))
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
