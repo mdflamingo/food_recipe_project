@@ -25,23 +25,20 @@ class ProfileSerializers(serializers.ModelSerializer):
                   'username', 'first_name',
                   'last_name', 'is_subscribed')
 
-    # def get_is_subscribed(self, obj):
-    #     # print(obj)
-    #     # if not self.context["request"].user.pk:
-    #     #     return None
-    #     # else:
-    #     #     user = self.context['request'].user
-    #     print(self.context)
-    #     return bool(obj.following.filter(user=request.user))
-    # def get_is_subscribed(self, obj):
-    #     user = self.context.get('request').user
-    #     if user.is_anonymous:
-    #         return False
-    #     return Follow.objects.filter(user=user, following=obj).exists()
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
-        return (
-            user.is_authenticated and bool(obj.following.filter(user=user)))
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, following=obj).exists()
+    # def get_is_subscribed(self, obj):
+    #     user = self.context.get('request').user
+    #     return (
+    #         user.is_authenticated and bool(obj.following.filter(user=user)))
+
+    def to_representation(self, instance):
+        if instance.is_authenticated:
+            return super().to_representation(instance)
+        return {}
 
 
 class Hex2NameColor(serializers.Field):
@@ -76,7 +73,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ('id', 'name', 'color', 'slug')
 
 
 class IngredientsSerializer(serializers.ModelSerializer):
@@ -135,9 +132,15 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
                   'text', 'cooking_time')
 
     def get_is_in_shopping_cart(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
         return ShoppingList.objects.filter(recipe=obj).exists()
 
     def get_is_favorited(self, obj):
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
         return Favorite.objects.filter(recipe=obj).exists()
 
 
@@ -160,20 +163,19 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
                   )
 
     def validate(self, data):
-        tags = data.get('tags')
-        ingredients = self.initial_data.get('ingredients')
-        ingredients_id = [el.get('id') for el in ingredients]
-
-        if not tags:
+        if not data.get('tags'):
             raise serializers.ValidationError(
                 {'tags': 'Выберите тег!'})
-        if len(tags) != len(set(tags)):
+        if len(data.get('tags')) != len(set(data.get('tags'))):
             raise serializers.ValidationError(
                 {'tags': 'Теги не должны повторяться'})
-        if not ingredients:
+        if not data.get('ingredients'):
             raise serializers.ValidationError(
                 {'ingredients': 'Невозможно создать рецепт без ингредиентов!'})
-        if len(ingredients) != len(set(ingredients_id)):
+
+        ingredients_id = [el.get('id') for el in data.get('ingredients')]   
+
+        if len(data.get('ingredients')) != len(set(ingredients_id)):
             raise serializers.ValidationError(
                 {'ingredients': 'Ингредиенты не должны повторяться!'})
 
@@ -200,7 +202,7 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('ingredient_used')
+        ingredients = validated_data.pop('ingredients')
 
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
@@ -264,10 +266,15 @@ class FollowListSerializer(serializers.ModelSerializer):
             queryset = queryset[:int(limit)]
         return ReducedRecipeSerializers(queryset, many=True).data
 
+    # def get_is_subscribed(self, obj):
+    #     user = self.context.get('request').user
+    #     return (
+    #         user.is_authenticated and bool(obj.subscriber.filter(user=user)))
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
-        return (
-            user.is_authenticated and bool(obj.subscriber.filter(user=user)))
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, following=obj).exists()
 
     def get_recipes_count(self, obj):
         return CookingRecipe.objects.filter(author=obj).count()

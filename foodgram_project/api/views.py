@@ -8,7 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -39,6 +39,8 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
+
     # filter_backends = [IngredientsSerchFilter, ]
 
 
@@ -47,8 +49,9 @@ class IngredientsViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientsSerializer
+    pagination_class = None
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    search_fields = ('^name',)
+    search_fields = ('^name', 'name')
 
 
 class CookingRecipeViewSet(viewsets.ModelViewSet):
@@ -115,6 +118,7 @@ class UserViewSet(UserViewSet):
 
     queryset = User.objects.all()
     serializer_class = ProfileSerializers
+    permission_classes = [AllowAny]
 
     @action(
         detail=False,
@@ -136,6 +140,10 @@ class APIFollow(APIView):
 
     def post(self, request, pk):
         user = request.user
+        if not User.objects.filter(id=pk).exists():
+            return Response({
+                'errors': 'Выбранный автор не существует!'
+            }, status=status.HTTP_404_NOT_FOUND)
         following = get_object_or_404(User, id=pk)
 
         if user == following:
@@ -155,6 +163,10 @@ class APIFollow(APIView):
 
     def delete(self, request, pk):
         user = request.user
+        if not User.objects.filter(id=pk).exists():
+            return Response({
+                'errors': 'Подписка не существует!'
+                }, status=status.HTTP_404_NOT_FOUND)
         following = get_object_or_404(User, id=pk)
 
         if user == following:
@@ -174,22 +186,36 @@ class APIFavorite(APIView):
     # может просмтаривать только автор
 
     def post(self, request, pk):
+        user = self.request.user
+        if not CookingRecipe.objects.filter(id=pk).exists():
+            return Response({
+                'errors': 'Выбранного рецепта не существует!'},
+                status=status.HTTP_400_BAD_REQUEST)
         recipe = get_object_or_404(CookingRecipe, id=pk)
+
         if Favorite.objects.filter(recipe=recipe).exists():
             return Response({
                 'errors': 'Рецепт уже находится в избранном!'},
                 status=status.HTTP_400_BAD_REQUEST)
-        favorite = Favorite.objects.create(user=request.user, recipe=recipe)
+        favorite = Favorite.objects.create(user=user, recipe=recipe)
         serializer = FavoriteSerializer(favorite, context={'request': request})
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
+        user = self.request.user
+        # if user.IsAuthenticated:
         recipe = get_object_or_404(CookingRecipe, id=pk)
-        favorite = Favorite.objects.filter(recipe=recipe)
+        favorite = Favorite.objects.filter(user=user, recipe=recipe)
         if favorite.exists():
             favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            'errors': 'Выбранный рецепт удален!'},
+            status=status.HTTP_400_BAD_REQUEST)
+        # return Response({
+        #         'errors': 'Необходима авторизация!'},
+        #         status=status.HTTP_401_UNAUTHORIZED)
 
 
 class APIShoppingList(APIView):
@@ -198,8 +224,13 @@ class APIShoppingList(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
+        user = self.request.user
+        if not CookingRecipe.objects.filter(id=pk).exists():
+            return Response({
+                'errors': 'Выбранного рецепта не существует!'},
+                status=status.HTTP_400_BAD_REQUEST)
         recipe = get_object_or_404(CookingRecipe, id=pk)
-        if ShoppingList.objects.filter(recipe=recipe).exists():
+        if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
             return Response({
                 'errors': 'Рецепт добавлен в список покупок!'},
                 status=status.HTTP_400_BAD_REQUEST)
@@ -211,11 +242,12 @@ class APIShoppingList(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
+        user = self.request.user
         recipe = get_object_or_404(CookingRecipe, id=pk)
-        shopping_cart = ShoppingList.objects.filter(recipe=recipe)
+        shopping_cart = ShoppingList.objects.filter(user=user, recipe=recipe)
         if shopping_cart.exists():
             shopping_cart.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response({
-                'errors': 'Рецепт не был добавлен в список покупок!'})
+        return Response({
+                'errors': 'Рецепт не был добавлен в список покупок!'},
+                status=status.HTTP_400_BAD_REQUEST)
