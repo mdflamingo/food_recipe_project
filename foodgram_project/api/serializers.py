@@ -72,7 +72,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
 
 
 class ReadCookingRecipesSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения."""
+    """Сериализатор для чтения рецептов."""
 
     id = serializers.ReadOnlyField(
         source='ingredient.id')
@@ -269,6 +269,24 @@ class FollowSerializer(serializers.ModelSerializer):
         model = Follow
         fields = ('user', 'following')
 
+    def validate(self, data):
+        user = data.get('user')
+        following = data.get('following')
+        print(following)
+
+        if user == following:
+            raise serializers.ValidationError({
+                'errors': 'Невозможно подписываться и отписываться от себя!'})
+
+        if not User.objects.filter(id=following.id).exists():
+            raise serializers.ValidationError({
+                'errors': 'Пользователь не существует!'})
+
+        if Follow.objects.filter(user=user, following=following).exists():
+            raise serializers.ValidationError({
+                'errors': 'Вы уже подписаны на данного пользователя'})
+        return data
+
     def to_representation(self, instance):
         return FollowListSerializer(
             instance.following,
@@ -282,6 +300,16 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Favorite
         fields = ('user', 'recipe')
 
+    def validate(self, data):
+        user = data.get('user')
+        recipe = data.get('recipe')
+
+        if Favorite.objects.filter(user=user, recipe=recipe).exists():
+            raise serializers.ValidationError({
+                'errors': 'Рецепт добавлен в избранное!'
+            })
+        return data
+
     def to_representation(self, instance):
         return ReducedRecipeSerializers(
             instance.recipe,
@@ -294,6 +322,16 @@ class ShoppingListSerializers(serializers.ModelSerializer):
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
+
+    def validate(self, data):
+        user = data.get('user')
+        recipe = data.get('recipe')
+
+        if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
+            raise serializers.ValidationError({
+                'errors': 'Рецепт добавлен в список покупок!'
+            })
+        return data
 
     def to_representation(self, instance):
         return ReducedRecipeSerializers(

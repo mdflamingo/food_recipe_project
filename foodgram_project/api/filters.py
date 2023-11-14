@@ -1,6 +1,7 @@
 from django_filters.rest_framework import (AllValuesMultipleFilter,
                                            BooleanFilter, FilterSet,
                                            NumberFilter)
+from rest_framework.filters import SearchFilter
 
 from recipes.models import CookingRecipe
 
@@ -37,3 +38,8 @@ class RecipeFilter(FilterSet):
                 recipe_shopping_cart__user=user)
 
         return queryset
+
+
+class IngredientSearchFilter(SearchFilter):
+    search_param = 'name'
+    

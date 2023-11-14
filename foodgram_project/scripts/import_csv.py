@@ -4,7 +4,7 @@ from recipes.models import Ingredient
 
 
 def run():
-    with open('data/ingredients.csv') as file:
+    with open('/Users/alexv/Dev/foodgram-project-react/data/ingredients.csv') as file:
         reader = csv.reader(file)
         data = []
         for row in reader:

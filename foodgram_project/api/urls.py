@@ -3,14 +3,14 @@ from rest_framework import routers
 
 from .views import (APIFavorite, APIFollow, APIShoppingList,
                     CookingRecipeViewSet, IngredientsViewSet, TagViewSet,
-                    UserViewSet)
+                    FoodgramUserViewSet)
 
 router = routers.DefaultRouter()
 
 router.register(r'recipes', CookingRecipeViewSet, basename='recipe')
 router.register(r'tags', TagViewSet)
 router.register(r'ingredients', IngredientsViewSet)
-router.register(r'users', UserViewSet, basename='users')
+router.register(r'users', FoodgramUserViewSet, basename='users')
 
 
 urlpatterns = [
