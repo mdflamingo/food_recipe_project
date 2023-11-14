@@ -1,27 +1,36 @@
-from django.db.models import Sum
+# Стандартные библиотеки Python
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import filters, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
-                            Ingredient, ShoppingList, Tag)
+from recipes.models import (CookingRecipe,
+                            CookingRecipeIngredient,
+                            Favorite,
+                            Ingredient,
+                            ShoppingList,
+                            Tag)
 from users.models import Follow, User
 
-from .filters import RecipeFilter, IngredientSearchFilter
-from.pagination import FoodgamPagination
+from .filters import IngredientSearchFilter, RecipeFilter
+from .pagination import FoodgramPagination
 from .permissions import IsAuthorOrReadOnlyPermission
 from .serializers import (CookingRecipeListSerializer,
-                          CookingRecipesSerializer, FavoriteSerializer,
-                          FollowListSerializer, FollowSerializer,
-                          IngredientsSerializer, ProfileSerializers,
-                          ShoppingListSerializers, TagSerializer)
+                          CookingRecipesSerializer,
+                          FavoriteSerializer,
+                          FollowListSerializer,
+                          FollowSerializer,
+                          IngredientsSerializer,
+                          ProfileSerializers,
+                          ShoppingListSerializers,
+                          TagSerializer)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -48,7 +57,7 @@ class CookingRecipeViewSet(viewsets.ModelViewSet):
 
     queryset = CookingRecipe.objects.all()
     serializer_class = CookingRecipesSerializer
-    pagination_class = FoodgamPagination
+    pagination_class = FoodgramPagination
     permission_classes = (AllowAny,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
@@ -103,7 +112,7 @@ class FoodgramUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = ProfileSerializers
     permission_classes = [AllowAny]
-    pagination_class = FoodgamPagination
+    pagination_class = FoodgramPagination
 
     def get_permissions(self):
         if self.action == 'me':
@@ -127,7 +136,7 @@ class APIFollow(APIView):
     """Подписка и отписка от автора."""
 
     permission_classes = [IsAuthenticated]
-    pagination_class = FoodgamPagination
+    pagination_class = FoodgramPagination
 
     def post(self, request, pk):
         user_id = self.request.user.id

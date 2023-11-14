@@ -4,8 +4,12 @@ import webcolors
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
-                            Ingredient, ShoppingList, Tag)
+from recipes.models import (CookingRecipe,
+                            CookingRecipeIngredient,
+                            Favorite,
+                            Ingredient,
+                            ShoppingList,
+                            Tag)
 from users.models import Follow, User
 
 
@@ -159,7 +163,7 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'ingredients': 'Невозможно создать рецепт без ингредиентов!'})
 
-        ingredients_id = [el.get('id') for el in data.get('ingredients')]   
+        ingredients_id = [el.get('id') for el in data.get('ingredients')]
 
         if len(data.get('ingredients')) != len(set(ingredients_id)):
             raise serializers.ValidationError(
