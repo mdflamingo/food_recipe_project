@@ -28,6 +28,7 @@ INSTALLED_APPS = [
 
     'django_extensions',
     'rest_framework',
+    'corsheaders',
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
@@ -143,4 +144,6 @@ DJOSER = {
     'HIDE_USERS': False,
 }
 
-CSRF_TRUSTED_ORIGINS = ['https://foody.ddns.net']
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_URLS_REGEX = r'^/api/.*$'
+CORS_URLS_REGEX = r'^/admin/.*$'
