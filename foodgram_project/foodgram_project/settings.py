@@ -142,3 +142,5 @@ DJOSER = {
     },
     'HIDE_USERS': False,
 }
+
+CSRF_TRUSTED_ORIGINS = ['https://foody.ddns.net']
