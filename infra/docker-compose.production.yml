@@ -13,7 +13,7 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   backend:
-    build: ../foodgram_project/
+    image: 17723701676/foodgram_backend
     env_file: .env
     volumes:
       - static:/backend_static
@@ -22,9 +22,7 @@ services:
     - db
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: 17723701676/foodgram_frontend
     volumes:
       - ../frontend/:/app/result_build/
 

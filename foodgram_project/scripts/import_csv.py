@@ -1,10 +1,14 @@
 import csv
+import os
 
+from foodgram_project.settings import BASE_DIR
 from recipes.models import Ingredient
+
+data_path = os.path.join(BASE_DIR, 'data', 'ingredients.csv')
 
 
 def run():
-    with open('foodgram_project/data/ingredients.csv') as file:
+    with open(data_path) as file:
         reader = csv.reader(file)
         data = []
         for row in reader:
