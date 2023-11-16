@@ -9,19 +9,15 @@ class BaseAdmin(admin.ModelAdmin):
 
 @admin.register(Follow)
 class FollowAdmin(BaseAdmin):
-    pass
+    list_display = ('user', 'following')
 
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = (
-        'pk',
-        'username',
-        'first_name',
-        'last_name',
-        'email',
-    )
+    list_display = ('pk', 'username',
+                    'first_name', 'last_name', 'email',)
     list_display_links = ('pk', 'username', 'email')
     search_fields = ('username', 'email')
+    list_filter = ('username', 'email')
 
     empty_value_display = '-пусто-'

@@ -1,4 +1,3 @@
-# Стандартные библиотеки Python
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 
@@ -11,26 +10,18 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from recipes.models import (CookingRecipe,
-                            CookingRecipeIngredient,
-                            Favorite,
-                            Ingredient,
-                            ShoppingList,
-                            Tag)
+from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
+                            Ingredient, ShoppingList, Tag)
 from users.models import Follow, User
 
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import FoodgramPagination
 from .permissions import IsAuthorOrReadOnlyPermission
 from .serializers import (CookingRecipeListSerializer,
-                          CookingRecipesSerializer,
-                          FavoriteSerializer,
-                          FollowListSerializer,
-                          FollowSerializer,
-                          IngredientsSerializer,
-                          ProfileSerializers,
-                          ShoppingListSerializers,
-                          TagSerializer)
+                          CookingRecipesSerializer, FavoriteSerializer,
+                          FollowListSerializer, FollowSerializer,
+                          IngredientsSerializer, ProfileSerializers,
+                          ShoppingListSerializers, TagSerializer)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):

@@ -4,12 +4,8 @@ import webcolors
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
-from recipes.models import (CookingRecipe,
-                            CookingRecipeIngredient,
-                            Favorite,
-                            Ingredient,
-                            ShoppingList,
-                            Tag)
+from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
+                            Ingredient, ShoppingList, Tag)
 from users.models import Follow, User
 
 

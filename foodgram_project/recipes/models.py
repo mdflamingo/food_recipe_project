@@ -65,10 +65,6 @@ class Ingredient(models.Model):
 
     class Meta:
         ordering = ('name', )
-        # constraints = [
-        #     models.UniqueConstraint(fields=['name',
-        # 'measurement_unit'], name='name_measurement_unit')
-        # ]
         unique_together = ('name', 'measurement_unit')
 
     def __str__(self):
