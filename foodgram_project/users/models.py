@@ -41,13 +41,13 @@ class User(AbstractUser):
     )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'first_name', 'last_name',]
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['email', 'password'],
                                     name='email_password')
-            ]
+                                    ]
 
 
 class Follow(models.Model):
