@@ -46,8 +46,7 @@ class User(AbstractUser):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['email', 'password'],
-                                    name='email_password')
-                                    ]
+                                    name='email_password')]
 
 
 class Follow(models.Model):
@@ -63,6 +62,4 @@ class Follow(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'following'],
-                name='unique_user_following'
-            )
-        ]
+                name='unique_user_following')]

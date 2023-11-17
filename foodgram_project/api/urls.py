@@ -22,4 +22,3 @@ urlpatterns = [
     path('users/<int:pk>/subscribe/', APIFollow.as_view()),
     path('recipes/<int:pk>/shopping_cart/', APIShoppingList.as_view())
 ]
-
