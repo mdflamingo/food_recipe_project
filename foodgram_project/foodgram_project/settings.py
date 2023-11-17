@@ -10,9 +10,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-*_b=o_(1jlcbq@#24@c4%2)89w8y*ilounijl6mrsw@09y0_ow'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['158.160.69.232', '127.0.0.1', 'localhost', 'foody.ddns.net']
 
 INSTALLED_APPS = [
     'users',
@@ -144,6 +144,3 @@ DJOSER = {
     'HIDE_USERS': False,
 }
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_URLS_REGEX = r'^/api/.*$'
-CORS_URLS_REGEX = r'^/admin/.*$'
