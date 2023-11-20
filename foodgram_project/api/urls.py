@@ -19,7 +19,7 @@ urlpatterns = [
     re_path(r'auth/', include('djoser.urls.authtoken')),
 
     path('recipes/<int:pk>/favorite/', APIFavorite.as_view(),
-         name='recipe_favorite'),
+         name='recipes_favorite'),
     path('users/<int:pk>/subscribe/', APIFollow.as_view(),
          name='user_follow'),
     path('recipes/<int:pk>/shopping_cart/', APIShoppingList.as_view(),

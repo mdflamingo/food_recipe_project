@@ -139,11 +139,7 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
 
         return data
 
-    def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        recipe = CookingRecipe.objects.create(**validated_data)
-
+    def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             current_ingredient = ingredient.get('id')
             current_amount = ingredient.get('amount')
@@ -153,8 +149,17 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
                     'amount': current_amount,
                 }
             )
-            for tag in tags:
-                recipe.tags.add(tag)
+        return recipe
+
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+
+        recipe = CookingRecipe.objects.create(**validated_data)
+        self.create_ingredients(ingredients, recipe)
+
+        for tag in tags:
+            recipe.tags.add(tag)
 
         return recipe
 
@@ -165,21 +170,11 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
 
         instance.tags.clear()
-
         for tag in tags:
             instance.tags.add(tag)
 
         instance.ingredients.clear()
-
-        for ingredient in ingredients:
-            current_ingredient = ingredient.get('id')
-            current_amount = ingredient.get('amount')
-            instance.ingredients.add(
-                current_ingredient,
-                through_defaults={
-                    'amount': current_amount,
-                }
-            )
+        self.create_ingredients(ingredients, instance)
         instance.save()
 
         return instance
