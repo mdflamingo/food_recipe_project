@@ -9,7 +9,7 @@ from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
 from users.models import Follow, User
 
 
-class ProfileSerializers(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     """Сериализатор пользователя."""
 
     is_subscribed = serializers.SerializerMethodField(
@@ -104,7 +104,7 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
         many=True,
         source='ingredient_used')
     tags = TagSerializer(many=True, read_only=True)
-    author = ProfileSerializers(read_only=True)
+    author = ProfileSerializer(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(
         method_name='get_is_in_shopping_cart')
     is_favorited = serializers.SerializerMethodField(

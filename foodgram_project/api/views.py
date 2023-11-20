@@ -1,25 +1,24 @@
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
                             Ingredient, ShoppingList, Tag)
 from users.models import Follow, User
-
 from .filters import IngredientSearchFilter, RecipeFilter
 from .pagination import FoodgramPagination
 from .permissions import IsAuthorOrReadOnlyPermission
 from .serializers import (CookingRecipeListSerializer,
                           CookingRecipesSerializer, FavoriteSerializer,
                           FollowListSerializer, FollowSerializer,
-                          IngredientsSerializer, ProfileSerializers,
+                          IngredientsSerializer, ProfileSerializer,
                           ShoppingListSerializers, TagSerializer)
 
 
@@ -100,7 +99,7 @@ class FoodgramUserViewSet(UserViewSet):
     """Получение списка подписок."""
 
     queryset = User.objects.all()
-    serializer_class = ProfileSerializers
+    serializer_class = ProfileSerializer
     permission_classes = [AllowAny]
     pagination_class = FoodgramPagination
 
@@ -136,10 +135,9 @@ class APIFollow(APIView):
             data={'user': user_id, 'following': following.id},
             context={'request': request})
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         user = request.user
@@ -161,7 +159,7 @@ class APIFavorite(APIView):
         user_id = self.request.user.id
         try:
             recipe = get_object_or_404(CookingRecipe, id=pk)
-        except Exception:
+        except Http404:
             return Response({'errors': 'Рецепт не существует!'},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -169,10 +167,9 @@ class APIFavorite(APIView):
             data={'user': user_id, 'recipe': recipe.id},
             context={'request': request})
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         user = self.request.user
@@ -193,7 +190,7 @@ class APIShoppingList(APIView):
         user_id = self.request.user.id
         try:
             recipe = get_object_or_404(CookingRecipe, id=pk)
-        except Exception:
+        except Http404:
             return Response({'errors': 'Рецепт не существует!'},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -201,10 +198,9 @@ class APIShoppingList(APIView):
             data={'user': user_id, 'recipe': recipe.id},
             context={'request': request})
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         user = self.request.user
