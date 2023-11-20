@@ -1,7 +1,9 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-
 from users.models import User
+
+from .constants import (AMOUNT_DEFAULT, COLOR_MAX_LEN,
+                        MEASUREMENT_UNIT_MAX_LEN, NAME_MAX_LEN, SLUG_MAX_LEN)
 
 
 class CookingRecipe(models.Model):
@@ -13,7 +15,7 @@ class CookingRecipe(models.Model):
         related_name='recipe')
     name = models.CharField(
         'Название',
-        max_length=200)
+        max_length=NAME_MAX_LEN)
     image = models.ImageField(
         'Фото рецепта',
         upload_to='recipes/')
@@ -37,15 +39,15 @@ class Tag(models.Model):
 
     name = models.CharField(
         'Название',
-        max_length=200,
+        max_length=NAME_MAX_LEN,
         unique=True)
     color = models.CharField(
         'Цвет',
-        max_length=7,
+        max_length=COLOR_MAX_LEN,
         unique=True)
     slug = models.SlugField(
         'Slug',
-        max_length=200,
+        max_length=SLUG_MAX_LEN,
         unique=True)
 
     def __str__(self):
@@ -57,11 +59,11 @@ class Ingredient(models.Model):
 
     name = models.CharField(
         'Название',
-        max_length=200)
+        max_length=NAME_MAX_LEN)
 
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=200)
+        max_length=MEASUREMENT_UNIT_MAX_LEN)
 
     class Meta:
         ordering = ('name', )
@@ -84,7 +86,7 @@ class CookingRecipeIngredient(models.Model):
         related_name='recipe_used')
     amount = models.IntegerField(
         'Количество',
-        default=1,
+        default=AMOUNT_DEFAULT,
         validators=[MinValueValidator(1)])
 
     def __str__(self):
