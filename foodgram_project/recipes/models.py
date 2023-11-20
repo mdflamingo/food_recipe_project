@@ -12,7 +12,7 @@ class CookingRecipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipe')
+        related_name='recipes')
     name = models.CharField(
         'Название',
         max_length=NAME_MAX_LEN)
@@ -88,6 +88,14 @@ class CookingRecipeIngredient(models.Model):
         'Количество',
         default=AMOUNT_DEFAULT,
         validators=[MinValueValidator(1)])
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'amount'],
+                name='unique_ingredient_amount'
+            )
+        ]
 
     def __str__(self):
         return f'{self.recipe}, {self.ingredient}, {self.amount}'

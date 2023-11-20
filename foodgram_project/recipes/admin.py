@@ -37,11 +37,12 @@ class RecipeAdmin(admin.ModelAdmin):
 
     def get_ingredients(self, obj):
         queryset = CookingRecipeIngredient.objects.filter(
-            recipe_id=obj.id).all()
-
+            recipe_id=obj.id).values(
+            'ingredient__name', 'amount', 'ingredient__measurement_unit')
         return ', '.join(
-            [f'{item.ingredient.name} {item.amount}'
-             f'{item.ingredient.measurement_unit}'
+            [f'{item["ingredient__name"]} '
+             f'{item["amount"]} '
+             f'{item["ingredient__measurement_unit"]}'
              for item in queryset])
 
     def get_favorite_count(self, obj):
