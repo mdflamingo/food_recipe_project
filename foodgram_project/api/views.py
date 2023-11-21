@@ -20,6 +20,7 @@ from .serializers import (CookingRecipeListSerializer,
                           FollowListSerializer, FollowSerializer,
                           IngredientsSerializer, ProfileSerializer,
                           ShoppingListSerializers, TagSerializer)
+from .mixins import CreateDeleteMixin
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -150,64 +151,57 @@ class APIFollow(APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class APIFavorite(APIView):
+class APIFavorite(CreateDeleteMixin):
     """Добавление рецептов в избранное и удаление из них."""
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        user_id = self.request.user.id
+        user = self.request.user
         try:
             recipe = get_object_or_404(CookingRecipe, id=pk)
         except Http404:
             return Response({'errors': 'Рецепт не существует!'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = FavoriteSerializer(
-            data={'user': user_id, 'recipe': recipe.id},
-            context={'request': request})
-
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(self.create_object(
+            user, recipe, FavoriteSerializer, Favorite),
+            status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         user = self.request.user
-        recipe = get_object_or_404(CookingRecipe, id=pk)
-        favorite = Favorite.objects.filter(user=user, recipe=recipe)
-        if favorite.exists():
-            favorite.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            recipe = get_object_or_404(CookingRecipe, id=pk)
+        except Http404:
+            return Response({'errors': 'Рецепт не существует!'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        return self.delete_object(user, recipe, Favorite)
 
 
-class APIShoppingList(APIView):
+class APIShoppingList(CreateDeleteMixin):
     """Добавление и удаление рецептов из списка покупок."""
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        user_id = self.request.user.id
+        user = self.request.user
         try:
             recipe = get_object_or_404(CookingRecipe, id=pk)
         except Http404:
             return Response({'errors': 'Рецепт не существует!'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = ShoppingListSerializers(
-            data={'user': user_id, 'recipe': recipe.id},
-            context={'request': request})
-
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(self.create_object(
+            user, recipe, ShoppingListSerializers, ShoppingList),
+            status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
         user = self.request.user
-        recipe = get_object_or_404(CookingRecipe, id=pk)
-        shopping_cart = ShoppingList.objects.filter(user=user, recipe=recipe)
-        if not shopping_cart.exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            recipe = get_object_or_404(CookingRecipe, id=pk)
+        except Http404:
+            return Response({'errors': 'Рецепт не существует!'},
+                            status=status.HTTP_404_NOT_FOUND)
 
-        shopping_cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.delete_object(user, recipe, ShoppingList)

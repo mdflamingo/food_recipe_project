@@ -12,7 +12,6 @@ router.register(r'tags', TagViewSet)
 router.register(r'ingredients', IngredientsViewSet)
 router.register(r'users', FoodgramUserViewSet, basename='users')
 
-
 urlpatterns = [
     path('', include(router.urls)),
     path('auth/', include('djoser.urls')),
