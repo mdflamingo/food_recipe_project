@@ -153,15 +153,18 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
 
         return CookingRecipeIngredient.objects.bulk_create(data)
 
+    def create_tags(self, tags, recipe):
+        for tag in tags:
+            recipe.tags.add(tag)
+
     def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
 
         recipe = CookingRecipe.objects.create(**validated_data)
-        self.create_ingredients(ingredients, recipe)
 
-        for tag in tags:
-            recipe.tags.add(tag)
+        self.create_ingredients(ingredients, recipe)
+        self.create_tags(tags, recipe)
 
         return recipe
 
@@ -172,12 +175,10 @@ class CookingRecipesSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
 
         instance.tags.clear()
-        for tag in tags:
-            instance.tags.add(tag)
+        self.create_tags(tags, instance)
 
         instance.ingredients.clear()
         self.create_ingredients(ingredients, instance)
-        instance.save()
 
         return instance
 
