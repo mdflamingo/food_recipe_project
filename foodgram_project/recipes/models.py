@@ -89,13 +89,13 @@ class CookingRecipeIngredient(models.Model):
         default=AMOUNT_DEFAULT,
         validators=[MinValueValidator(1)])
 
-    # class Meta:
-    #     constraints = [
-    #         models.UniqueConstraint(
-    #             fields=['ingredient', 'amount'],
-    #             name='unique_ingredient_amount'
-    #         )
-    #     ]
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'recipe'],
+                name='unique_ingredient_recipe'
+            )
+        ]
 
     def __str__(self):
         return f'{self.recipe}, {self.ingredient}, {self.amount}'
