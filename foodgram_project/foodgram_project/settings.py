@@ -8,11 +8,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = 'django-insecure-*_b=o_(1jlcbq@#24@c4%2)89w8y*ilounijl6mrsw@09y0_ow'
-
-DEBUG = True
-
-ALLOWED_HOSTS = ['158.160.69.232', '127.0.0.1', 'localhost', 'foody.ddns.net']
+SECRET_KEY = os.getenv('SECRET_KEY', 'mysecretkey')
+DEBUG = os.getenv('DEBUG', True) == 'True'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '158.160.69.232,127.0.0.1,localhost,foody.ddns.net').split(',')
 
 INSTALLED_APPS = [
     'users',
