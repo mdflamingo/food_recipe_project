@@ -1,7 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-from users.models import User
 
+from users.models import User
 from .constants import (AMOUNT_DEFAULT, COLOR_MAX_LEN,
                         MEASUREMENT_UNIT_MAX_LEN, NAME_MAX_LEN, SLUG_MAX_LEN)
 
