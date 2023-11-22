@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
@@ -157,26 +157,13 @@ class APIFavorite(CreateDeleteMixin):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        user = self.request.user
-        try:
-            recipe = get_object_or_404(CookingRecipe, id=pk)
-        except Http404:
-            return Response({'errors': 'Рецепт не существует!'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(self.create_object(
-            user, recipe, FavoriteSerializer, Favorite),
-            status=status.HTTP_201_CREATED)
+        return self.create_object(
+            request, pk,
+            FavoriteSerializer)
 
     def delete(self, request, pk):
-        user = self.request.user
-        try:
-            recipe = get_object_or_404(CookingRecipe, id=pk)
-        except Http404:
-            return Response({'errors': 'Рецепт не существует!'},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        return self.delete_object(user, recipe, Favorite)
+        return self.delete_object(
+            request, pk, Favorite)
 
 
 class APIShoppingList(CreateDeleteMixin):
@@ -185,23 +172,10 @@ class APIShoppingList(CreateDeleteMixin):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
-        user = self.request.user
-        try:
-            recipe = get_object_or_404(CookingRecipe, id=pk)
-        except Http404:
-            return Response({'errors': 'Рецепт не существует!'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(self.create_object(
-            user, recipe, ShoppingListSerializers, ShoppingList),
-            status=status.HTTP_201_CREATED)
+        return self.create_object(
+            request, pk,
+            ShoppingListSerializers)
 
     def delete(self, request, pk):
-        user = self.request.user
-        try:
-            recipe = get_object_or_404(CookingRecipe, id=pk)
-        except Http404:
-            return Response({'errors': 'Рецепт не существует!'},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        return self.delete_object(user, recipe, ShoppingList)
+        return self.delete_object(
+            request, pk, ShoppingList)
