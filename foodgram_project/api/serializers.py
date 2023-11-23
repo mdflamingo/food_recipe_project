@@ -3,7 +3,7 @@ from rest_framework import serializers
 from recipes.models import (CookingRecipe, CookingRecipeIngredient, Favorite,
                             Ingredient, ShoppingList, Tag)
 from users.models import Follow, User
-from .fields import Base64ImageField, Hex2NameColor
+from .fields import Base64ImageField
 
 
 class ProfileSerializer(serializers.ModelSerializer):
