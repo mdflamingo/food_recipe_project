@@ -28,8 +28,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для тегов."""
 
-    color = Hex2NameColor()
-
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
@@ -94,13 +92,13 @@ class CookingRecipeListSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return ShoppingList.objects.filter(recipe=obj).exists()
+        return ShoppingList.objects.filter(recipe=obj, user=user).exists()
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Favorite.objects.filter(recipe=obj).exists()
+        return Favorite.objects.filter(recipe=obj, user=user).exists()
 
 
 class CookingRecipesSerializer(serializers.ModelSerializer):
